@@ -1,0 +1,1077 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>HEYLEX | Soluciones Tecnológicas de Control de Acceso y Seguridad</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-primary-fixed":"#001c38","on-secondary-fixed-variant":"#414c00","on-error-container":"#93000a","secondary-fixed":"#d4f034","on-tertiary-container":"#9ea5ac","primary-fixed":"#d3e4ff","tertiary-fixed":"#dce3eb","background":"#f8f9fc","on-secondary":"#ffffff","surface-dim":"#d8dadd","secondary-fixed-dim":"#b9d307","error-container":"#ffdad6","error":"#ba1a1a","on-primary-fixed-variant":"#204874","on-tertiary":"#ffffff","on-secondary-container":"#5d6b00","surface-container-lowest":"#ffffff","secondary-container":"#d4f034","surface-bright":"#f8f9fc","on-primary":"#ffffff","surface":"#f8f9fc","surface-container":"#eceef1","surface-container-low":"#f2f4f7","surface-variant":"#e0e3e6","on-error":"#ffffff","on-tertiary-fixed":"#151c22","inverse-surface":"#2d3133","on-primary-container":"#81a6d7","primary-fixed-dim":"#a4c9fc","surface-container-highest":"#e0e3e6","on-surface":"#191c1e","primary-container":"#0d3b66","on-secondary-fixed":"#191e00","on-surface-variant":"#42474f","surface-tint":"#3a608d","tertiary":"#1e252b","outline":"#737780","primary":"#002546","on-tertiary-fixed-variant":"#41484e","on-background":"#191c1e","inverse-on-surface":"#eff1f4","inverse-primary":"#a4c9fc","secondary":"#576500","surface-container-high":"#e6e8eb","outline-variant":"#c3c6d0","tertiary-container":"#343b41","tertiary-fixed-dim":"#c0c7cf"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xs":"0.25rem","space-lg":"1.5rem","space-sm":"0.5rem","space-xl":"2.5rem","margin-mobile":"1.25rem","space-md":"1rem","gutter-mobile":"1rem","gutter":"1.5rem","margin":"3rem"},"fontFamily":{"headline-lg-mobile":["Montserrat"],"display-lg":["Montserrat"],"body-lg":["Montserrat"],"label-lg":["Montserrat"],"body-md":["Montserrat"],"label-md":["Montserrat"],"display-lg-mobile":["Montserrat"],"label-sm":["Montserrat"],"body-sm":["Montserrat"],"headline-sm":["Montserrat"],"headline-lg":["Montserrat"],"headline-md":["Montserrat"]},"fontSize":{"headline-lg-mobile":["1.5rem",{"lineHeight":"2rem","letterSpacing":"-0.01em","fontWeight":"700"}],"display-lg":["3.5rem",{"lineHeight":"4.25rem","letterSpacing":"-0.03em","fontWeight":"800"}],"body-lg":["1.0625rem",{"lineHeight":"1.625rem","fontWeight":"400"}],"label-lg":["0.875rem",{"lineHeight":"1.25rem","letterSpacing":"0.06em","fontWeight":"700"}],"body-md":["0.9375rem",{"lineHeight":"1.5rem","fontWeight":"400"}],"label-md":["0.75rem",{"lineHeight":"1rem","letterSpacing":"0.08em","fontWeight":"600"}],"display-lg-mobile":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"800"}],"label-sm":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.1em","fontWeight":"700"}],"body-sm":["0.8125rem",{"lineHeight":"1.25rem","fontWeight":"400"}],"headline-sm":["1.125rem",{"lineHeight":"1.625rem","fontWeight":"600"}],"headline-lg":["2rem",{"lineHeight":"2.5rem","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["1.375rem",{"lineHeight":"1.875rem","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script>
+<style id="heylex-custom-styles">
+  /* Smooth scroll & anchor offset */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+  }
+  
+  /* Barrier gate animation */
+  .barrier-arm {
+    transform-origin: 16px 16px;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .barrier-arm.open {
+    transform: rotate(-72deg);
+  }
+  
+  /* Laser scanner beam animation */
+  @keyframes scanline {
+    0% { top: 0%; opacity: 0; }
+    30% { opacity: 0.8; }
+    70% { opacity: 0.8; }
+    100% { top: 95%; opacity: 0; }
+  }
+  .scanner-beam {
+    animation: scanline 2.2s infinite ease-in-out;
+  }
+  
+  /* Pulse animations */
+  @keyframes pulse-lime {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212, 240, 52, 0.6); }
+    50% { box-shadow: 0 0 0 10px rgba(212, 240, 52, 0); }
+  }
+  .pulse-lime {
+    animation: pulse-lime 2s infinite;
+  }
+  
+  /* Accordion smooth height transitions */
+  .faq-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+    opacity: 0;
+  }
+  .faq-content.open {
+    opacity: 1;
+  }
+
+  /* Header scrolled effect */
+  header.header-scrolled > div:last-child {
+    box-shadow: 0 4px 20px -2px rgba(13, 59, 102, 0.15);
+    background-color: rgba(248, 249, 252, 0.95) !important;
+  }
+  
+  /* Testimonial slider */
+  .testimonial-track {
+    display: flex;
+    transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Mobile Drawer */
+  #mobile-drawer {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  #mobile-drawer-content {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #mobile-drawer.closed {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #mobile-drawer.closed #mobile-drawer-content {
+    transform: translateX(100%);
+  }
+  #mobile-drawer.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  #mobile-drawer.open #mobile-drawer-content {
+    transform: translateX(0);
+  }
+
+  /* Counter transition */
+  .stat-counter {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Toast Notification */
+  #hud-toast {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  #hud-toast.hidden-toast {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+  }
+  #hud-toast.visible-toast {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* QR Code Generator Hologram pulse */
+  .qr-hologram {
+    background: radial-gradient(circle, rgba(212,240,52,0.15) 0%, rgba(13,59,102,0) 70%);
+  }
+</style>
+
+</head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 w-full z-50"><div class="bg-primary text-on-primary"><div class="max-w-7xl mx-auto px-gutter h-10 flex items-center justify-between font-label-sm text-label-sm"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs text-on-primary/90"><span class="material-symbols-outlined text-[16px] text-secondary-fixed">call</span><span class="">993 378 4115</span></div><div class="hidden sm:flex items-center gap-space-xs text-on-primary/90"><span class="material-symbols-outlined text-[16px] text-secondary-fixed">mail</span><span class="">ventas@heylex.mx</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="inline-block w-2 h-2 rounded-full bg-secondary-fixed animate-pulse"></span><span class="uppercase tracking-wider text-on-primary/80">Monitoreo Activo 24/7</span></div><div class="h-3 w-[1px] bg-outline-variant/30"></div><span class="text-secondary-fixed tracking-wider font-bold">SOC2 COMPLIANT</span></div></div></div><div class="bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(13,59,102,0.06)]"><div class="h-20 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><a class="flex items-center gap-space-xs group" data-path="soluciones" href="#"><div class="flex items-center gap-space-xs"><div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-secondary-fixed shadow-sm"><svg class="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 6V26M24 6V26M8 16H24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="16" r="2.5" fill="#d4f034"></circle></svg></div><div class="flex flex-col"><span class="font-display-lg text-[22px] font-extrabold tracking-tight text-primary leading-none">HEYLEX</span><span class="font-label-sm text-[10px] tracking-wider text-secondary font-bold leading-tight">Parking</span></div></div></a></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold rounded-lg shadow-sm"><a aria-current="page" class="px-space-md py-space-xs transition-all bg-primary-container text-on-primary font-bold rounded-lg shadow-sm" data-path="soluciones" href="#">Soluciones</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" data-path="como-funciona" href="#">Cómo Funciona</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" data-path="beneficios" href="#">Beneficios</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" data-path="sectores" href="#">Sectores</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" data-path="tecnologia" href="#">Tecnología</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" data-path="preguntas" href="#">Preguntas</a></nav><div class="flex items-center gap-space-sm"><a class="hidden sm:inline-flex items-center justify-center h-11 px-space-md font-label-sm text-label-sm uppercase text-primary bg-surface-container-high hover:bg-surface-container-highest hover:text-primary rounded-lg transition-all shadow-[0_1px_3px_rgba(13,59,102,0.06)]" data-path="cotizar" href="#">Cotizar</a><a class="inline-flex items-center justify-center h-11 px-space-lg font-label-sm text-label-sm uppercase text-primary bg-secondary-fixed hover:bg-secondary-fixed-dim rounded-lg shadow-[0_2px_8px_rgba(212,240,52,0.35)] transition-all" data-path="solicitar-demostracion" href="#">Solicitar Cotización</a><div class="ml-space-xs pl-space-xs flex items-center"><img alt="HEYLEX Parking" class="w-8 h-8 rounded-full object-contain bg-surface-container-lowest p-space-xs ring-2 ring-primary/20" src="../image.png_1/screen.png"></div></div></div></div></header><main class="w-full pt-[120px] bg-surface min-h-[calc(100vh-120px)]"><div class="flex flex-col w-full">
+<!-- SECTION 1: HERO SECTION -->
+<section class="relative w-full overflow-hidden bg-primary text-on-primary py-space-xl">
+<!-- Ambient Tech Glow -->
+<div class="absolute -top-32 -left-32 w-96 h-96 bg-primary-container/60 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -right-32 w-96 h-96 bg-secondary-fixed/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-gutter relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Left Column: Value Prop & Conversion -->
+<div class="lg:col-span-7 space-y-space-lg">
+<div class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-primary-container/80 text-secondary-fixed shadow-sm">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase">Tecnología de Acceso B2B &amp; Seguridad Integral</span>
+</div>
+<div class="space-y-space-sm">
+<h1 class="font-display-lg text-display-lg font-bold leading-tight tracking-tight text-on-primary">
+              Control inteligente de accesos para <span class="text-secondary-fixed">residenciales</span> y estacionamientos
+            </h1>
+<p class="font-body-lg text-body-lg text-primary-fixed max-w-2xl">
+              Automatiza accesos vehiculares y peatonales, eleva la seguridad perimetral y optimiza la operación de tu desarrollo con el ecosistema SaaS y hardware de grado institucional HEYLEX. <span class="italic font-semibold text-secondary-fixed">"...Tu lugar seguro"</span>.
+            </p>
+</div>
+<!-- CTAs -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-md pt-space-xs">
+<a class="inline-flex items-center justify-center h-12 px-space-xl font-label-lg text-label-lg uppercase bg-secondary-fixed text-primary hover:bg-secondary-fixed-dim rounded-lg shadow-md transition-all duration-200 gap-space-xs" href="#contacto-demo">
+<span class="">Solicitar Cotización</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</a>
+<a class="inline-flex items-center justify-center h-12 px-space-lg font-label-lg text-label-lg uppercase bg-primary-container text-on-primary hover:bg-primary-container/80 rounded-lg shadow-sm transition-all duration-200 gap-space-xs" href="https://wa.me/529933784115" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">chat</span>
+<span class="">Hablar con un asesor</span>
+</a>
+</div>
+<!-- Micro Location & Contact Stamp -->
+<div class="flex flex-wrap items-center gap-space-md pt-space-sm text-primary-fixed font-label-sm text-label-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">verified</span>
+<span class="">Soporte Inmediato: 993 378 4115</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">location_on</span>
+<span class="">Sede Villahermosa, Tabasco &amp; Cobertura México</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Hardware & QR Telemetry Graphic -->
+<div class="lg:col-span-5 relative">
+<div class="relative bg-surface-container-lowest p-space-md rounded-xl shadow-xl text-on-surface">
+<!-- Header bar of the telemetry card -->
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-secondary-fixed"></span>
+<span class="font-label-md text-label-md text-primary uppercase">Caseta Principal - Carril Norte</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-primary text-secondary-fixed">EN VIVO</span>
+</div>
+<!-- Hardware & Mockup Visual Showcase -->
+<div class="relative overflow-hidden rounded-lg bg-surface-container-high h-80 flex items-center justify-center">
+<div class="w-full h-full bg-surface-container-lowest flex items-center justify-center p-space-lg"><img src="../image.png_2/screen.png" alt="HEYLEX Parking" class="max-h-52 max-w-full object-contain mb-8 transition-transform group-hover:scale-105"></div>
+<!-- Floating HUD Badge Over Image -->
+<div class="absolute bottom-3 left-3 right-3 p-space-sm rounded-lg bg-primary/90 text-on-primary backdrop-blur-md shadow-md flex items-center justify-between">
+<div>
+<div class="font-label-sm text-label-sm text-secondary-fixed uppercase">Pase QR Validado</div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-primary">Visita: Ing. Carlos Morales</div>
+<div class="font-body-sm text-body-sm text-primary-fixed">Residencia #42 - Vigencia: 2h restantes</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">lock_open</span>
+</div>
+</div>
+</div>
+<!-- Actuator Control Simulation -->
+<div class="mt-space-md grid grid-cols-2 gap-space-sm">
+<div class="bg-surface-container p-space-sm rounded-lg flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">speed</span>
+<div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Tiempo Tránsito</div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary">1.8 seg</div>
+</div>
+</div>
+<div class="bg-surface-container p-space-sm rounded-lg flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">verified_user</span>
+<div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Barrera Activa</div>
+<div class="font-headline-sm text-headline-sm font-bold text-secondary">Apertura Automática</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4 Floating Confidence Pillars -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mt-space-xl pt-space-lg">
+<div class="bg-primary-container/60 backdrop-blur-md p-space-md rounded-xl shadow-sm flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[26px]">security</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-primary font-bold">Seguridad 24/7</h2>
+<p class="font-body-sm text-body-sm text-primary-fixed mt-space-xs">Monitoreo ininterrumpido con redundancia operativa local y en la nube.</p>
+</div>
+</div>
+<div class="bg-primary-container/60 backdrop-blur-md p-space-md rounded-xl shadow-sm flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[26px]">minor_crash</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-primary font-bold">Accesos Inteligentes</h2>
+<p class="font-body-sm text-body-sm text-primary-fixed mt-space-xs">Ingreso en &lt; 2.5 seg con lectura OCR de placas, TAGs UHF y barreras veloces.</p>
+</div>
+</div>
+<div class="bg-primary-container/60 backdrop-blur-md p-space-md rounded-xl shadow-sm flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[26px]">qr_code_scanner</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-primary font-bold">Tecnología QR</h2>
+<p class="font-body-sm text-body-sm text-primary-fixed mt-space-xs">Invitaciones dinámicas de un solo uso despachadas vía WhatsApp en segundos.</p>
+</div>
+</div>
+<div class="bg-primary-container/60 backdrop-blur-md p-space-md rounded-xl shadow-sm flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-secondary-fixed shrink-0">
+<span class="material-symbols-outlined text-[26px]">headset_mic</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-primary font-bold">Atención Personalizada</h2>
+<p class="font-body-sm text-body-sm text-primary-fixed mt-space-xs">Ingeniería en sitio, soporte directo y operadores certificados en turno.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: PROBLEMAS VS SOLUCIÓN (Antes vs Después) -->
+<section class="w-full py-space-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="text-center max-w-3xl mx-auto mb-space-xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Diagnóstico de Seguridad Perimetral</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">¿Tu residencial o estacionamiento enfrenta estos problemas?</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Los métodos manuales y libretas de papel vulneran la seguridad y generan filas innecesarias. Conoce el cambio de paradigma que HEYLEX entrega desde el primer día.
+        </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg items-stretch">
+<!-- El Caos Tradicional -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between pb-space-sm bg-error-container/20 p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-error">cancel</span>
+<span class="font-label-lg text-label-lg text-error uppercase">El Caos Tradicional</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Fricción &amp; Riesgo</span>
+</div>
+<ul class="space-y-space-md font-body-md text-body-md text-on-surface-variant">
+<li class="flex items-start gap-space-sm bg-surface-container p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">report_problem</span>
+<div class="">
+<strong class="text-on-surface font-semibold block">Accesos no controlados:</strong>
+                  Vehículos ingresan pegados o aprovechando plumas abiertas sin verificación.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-surface-container p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">edit_document</span>
+<div class="">
+<strong class="text-on-surface font-semibold block">Visitantes sin registro confiable:</strong>
+                  Bitácoras físicas de papel ilegibles, propensas a falsificación y pérdida de datos.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-surface-container p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">hourglass_top</span>
+<div class="">
+<strong class="text-on-surface font-semibold block">Control manual ineficiente:</strong>
+                  Largas filas de visitantes que frustran a residentes y saturan a los guardias en horas pico.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-surface-container p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">visibility_off</span>
+<div class="">
+<strong class="text-on-surface font-semibold block">Falta de trazabilidad histórica:</strong>
+                  Imposible saber quién autorizó un ingreso o verificar la matrícula tras una incidencia.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-surface-container p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">payments</span>
+<div class="">
+<strong class="text-on-surface font-semibold block">Cobros y cuotas desordenadas:</strong>
+                  Fugas de dinero en estacionamientos y morosidad persistente en residenciales.
+                </div>
+</li>
+</ul>
+</div>
+<div class="mt-space-md p-space-sm bg-surface-container rounded-lg text-center font-label-sm text-label-sm text-on-surface-variant uppercase">
+            Resultado: Inseguridad percibida, conflictos entre vecinos y devaluación patrimonial.
+          </div>
+</div>
+<!-- La Solución Integral HEYLEX -->
+<div class="bg-primary text-on-primary p-space-lg rounded-xl shadow-md flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between pb-space-sm bg-primary-container p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-fixed">check_circle</span>
+<span class="font-label-lg text-label-lg text-secondary-fixed uppercase">La Experiencia HEYLEX</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-wider">Automatizado &amp; Auditado</span>
+</div>
+<ul class="space-y-space-md font-body-md text-body-md text-primary-fixed">
+<li class="flex items-start gap-space-sm bg-primary-container/80 p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px] shrink-0 mt-0.5">verified_user</span>
+<div class="">
+<strong class="text-on-primary font-semibold block">Validación biométrica y QR en tiempo real:</strong>
+                  Apertura automática únicamente tras corroborar token digital de acceso.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-primary-container/80 p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px] shrink-0 mt-0.5">qr_code_2</span>
+<div class="">
+<strong class="text-on-primary font-semibold block">Trazabilidad digital 100%:</strong>
+                  Fotografía de placas, hora exacta y anfitrión vinculados a cada evento en la nube.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-primary-container/80 p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px] shrink-0 mt-0.5">bolt</span>
+<div class="">
+<strong class="text-on-primary font-semibold block">Ingreso ágil sin fricción (&lt; 3 seg):</strong>
+                  Lectura omnidireccional de QR desde el cristal del auto y TAGs RFID vehiculares.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-primary-container/80 p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px] shrink-0 mt-0.5">cloud_done</span>
+<div class="">
+<strong class="text-on-primary font-semibold block">Auditoría perimetral instantánea:</strong>
+                  Acceso a bitácora forense desde el portal web en cualquier momento y dispositivo.
+                </div>
+</li>
+<li class="flex items-start gap-space-sm bg-primary-container/80 p-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px] shrink-0 mt-0.5">point_of_sale</span>
+<div class="">
+<strong class="text-on-primary font-semibold block">Conciliación de pagos sistematizada:</strong>
+                  Módulo de control de cuotas condominales y cobro automatizado en estacionamientos.
+                </div>
+</li>
+</ul>
+</div>
+<div class="mt-space-md p-space-sm bg-secondary-fixed text-primary rounded-lg text-center font-label-md text-label-md font-bold uppercase">
+            Resultado: 0% accesos indeseados, plusvalía inmediata y control total en tus manos.
+          </div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: SOLUCIONES HEYLEX (Bento Grid con 6 Pilares) -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-space-xl gap-space-md">
+<div class="max-w-2xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Catálogo Modular de Soluciones</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">Tecnología de punta y personal especializado</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Cada desarrollo posee requerimientos únicos. Implementamos sistemas modulares escalables que se ajustan al tamaño y flujo de tus instalaciones.</p>
+</div>
+<a class="inline-flex items-center gap-space-xs font-label-lg text-label-lg uppercase text-primary hover:text-secondary transition-colors" href="#contacto-demo">
+<span class="">Solicitar Cotización de Proyecto</span>
+<span class="material-symbols-outlined text-[18px]">arrow_outward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+<!-- CARD 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">garage</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-surface-container text-primary font-bold">Hardware &amp; TAGs</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Control de Accesos Vehiculares</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Apertura automatizada con barreras de alto ciclo (hasta 10,000 ciclos/día), TAGs parabrisas de largo alcance UHF y semaforización LED.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Plumas de rápida apertura (&lt; 1.5s)</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Lectura RFID hasta 6 metros de distancia</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Sensor anti-impacto vehicular</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Cotizar Control Vehicular</a>
+</div>
+</div>
+<!-- CARD 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">qr_code</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-secondary-fixed/20 text-primary font-bold">App &amp; WhatsApp</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Invitaciones por Código QR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Los residentes crean pases de visita en segundos y los comparten por WhatsApp. El visitante escanea desde su celular y entra al instante.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Pases con caducidad por fecha y hora</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Códigos únicos anti-reenvío</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Notificación instantánea de ingreso al anfitrión</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Ver Módulo QR</a>
+</div>
+</div>
+<!-- CARD 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">receipt_long</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-surface-container text-primary font-bold">Finanzas SaaS</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Control y Registro de Pagos</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gestión transparente de cuotas de mantenimiento para condominios o automatización de taquillas y cobro por fracción en estacionamientos públicos.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Estados de cuenta y recibos digitales</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Restricción automática a morosos</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Integración con pasarelas bancarias</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Explorar Finanzas</a>
+</div>
+</div>
+<!-- CARD 4 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">pool</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-surface-container text-primary font-bold">Comunidad</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Administración de Áreas Comunes</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Calendario digital inteligente para reserva de alberca, palapas, casa club, canchas de pádel y gimnasio con reglamento y aforo controlado.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Aprobación inmediata o sujeta a pago</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Límite de aforo y horario por vivienda</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Validación de no adeudos previo a reserva</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Detalles Áreas Comunes</a>
+</div>
+</div>
+<!-- CARD 5 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">badge</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-surface-container text-primary font-bold">Talento Humano</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Operadores de Seguridad Capacitados</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">No solo proveemos software: integramos guardias y operadores certificados en atención al cliente, protocolo de crisis y uso del sistema.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Personal con uniforme táctico corporativo</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Supervisión presencial y rondines digitales</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Filtro estricto de antecedentes y antidoping</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Solicitar Personal</a>
+</div>
+</div>
+<!-- CARD 6 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-lg bg-primary text-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">videocam</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-secondary-fixed/20 text-primary font-bold">Analítica LPR</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Cámaras &amp; Reconocimiento LPR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Circuito cerrado de televisión de alta definición con visión nocturna infrarroja y lectura OCR para registro vehicular automatizado.</p>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Captura nítida de placas hasta a 40 km/h</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Lista blanca y lista negra de vehículos</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span>Almacenamiento seguro local y en la nube</li>
+</ul>
+</div>
+<div class="pt-space-md mt-space-md">
+<a class="w-full inline-flex items-center justify-center h-10 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md transition-all" href="#contacto-demo">Ver Cámaras &amp; LPR</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: CÓMO FUNCIONA (Timeline interactivo de 4 pasos) -->
+<section class="w-full py-space-xl bg-surface-container">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="text-center max-w-3xl mx-auto mb-space-xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Metodología Comprobada</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">Cómo implementamos HEYLEX en 4 sencillos pasos</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Desde el primer diagnóstico hasta la operación continua, aseguramos una transición limpia sin interrumpir el flujo cotidiano de tu desarrollo.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md relative">
+<!-- Step 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm relative">
+<div class="w-12 h-12 rounded-full bg-primary text-secondary-fixed font-headline-sm text-headline-sm font-bold flex items-center justify-center mb-space-md">
+            01
+          </div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Diagnóstico Integral</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Realizamos un levantamiento técnico presencial de carriles, aforos picos, cableado existente y necesidades de caseta.</p>
+<div class="mt-space-md inline-flex items-center gap-space-xs text-secondary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">check_box</span>
+<span class="">Sin costo para tu privada</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm relative">
+<div class="w-12 h-12 rounded-full bg-primary text-secondary-fixed font-headline-sm text-headline-sm font-bold flex items-center justify-center mb-space-md">
+            02
+          </div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Instalación de Hardware</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Montaje de barreras electromecánicas, tótems de lectura QR, antenas RFID y cableado de datos industrial.</p>
+<div class="mt-space-md inline-flex items-center gap-space-xs text-secondary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">hardware</span>
+<span class="">Instalación limpia y certificada</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm relative">
+<div class="w-12 h-12 rounded-full bg-primary text-secondary-fixed font-headline-sm text-headline-sm font-bold flex items-center justify-center mb-space-md">
+            03
+          </div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Configuración &amp; Capacitación</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Puesta a punto de la plataforma en la nube, registro inicial de colonos y taller formativo al comité y operadores.</p>
+<div class="mt-space-md inline-flex items-center gap-space-xs text-secondary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">school</span>
+<span class="">Soporte al usuario final</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm relative">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed text-primary font-headline-sm text-headline-sm font-bold flex items-center justify-center mb-space-md">
+            04
+          </div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Operación Activa 24/7</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Monitoreo continuo, mantenimiento preventivo programado y asistencia técnica inmediata en Villahermosa y sureste.</p>
+<div class="mt-space-md inline-flex items-center gap-space-xs text-primary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+<span class="">Continuidad garantizada</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 5: BENEFICIOS Y MÉTRICAS (Contadores y Datos Comprobables) -->
+<section class="w-full py-space-xl bg-primary text-on-primary">
+<div class="max-w-7xl mx-auto px-gutter">
+<!-- Metrics Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md text-center pb-space-xl">
+<div class="bg-primary-container/40 p-space-md rounded-xl backdrop-blur-sm">
+<div class="font-display-lg text-display-lg font-bold text-secondary-fixed leading-none">+85%</div>
+<div class="font-label-md text-label-md uppercase tracking-wider text-primary-fixed mt-space-xs">Reducción en tiempos de caseta</div>
+<p class="font-body-sm text-body-sm text-on-primary/70 mt-1">De 4 minutos a 15 segundos por visita</p>
+</div>
+<div class="bg-primary-container/40 p-space-md rounded-xl backdrop-blur-sm">
+<div class="font-display-lg text-display-lg font-bold text-secondary-fixed leading-none">99.9%</div>
+<div class="font-label-md text-label-md uppercase tracking-wider text-primary-fixed mt-space-xs">Trazabilidad Total</div>
+<p class="font-body-sm text-body-sm text-on-primary/70 mt-1">Cero accesos anónimos o no autorizados</p>
+</div>
+<div class="bg-primary-container/40 p-space-md rounded-xl backdrop-blur-sm">
+<div class="font-display-lg text-display-lg font-bold text-secondary-fixed leading-none">+40%</div>
+<div class="font-label-md text-label-md uppercase tracking-wider text-primary-fixed mt-space-xs">Recaudación de Cuotas</div>
+<p class="font-body-sm text-body-sm text-on-primary/70 mt-1">Disminución drástica de morosidad</p>
+</div>
+<div class="bg-primary-container/40 p-space-md rounded-xl backdrop-blur-sm">
+<div class="font-display-lg text-display-lg font-bold text-secondary-fixed leading-none">24/7</div>
+<div class="font-label-md text-label-md uppercase tracking-wider text-primary-fixed mt-space-xs">Soporte y Continuidad</div>
+<p class="font-body-sm text-body-sm text-on-primary/70 mt-1">Respaldo ante cortes de luz o red</p>
+</div>
+</div>
+<!-- Qualitative Benefits Bento -->
+<div class="mt-space-xl pt-space-lg">
+<div class="text-center max-w-2xl mx-auto mb-space-lg">
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-primary">Valor tangible para administradores y colonos</h2>
+<p class="font-body-md text-body-md text-primary-fixed mt-space-xs">La solución definitiva que dignifica el trabajo de vigilancia y tranquiliza a cada familia.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="bg-surface-container-lowest text-on-surface p-space-md rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[32px] mb-space-xs">military_tech</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Control Absoluto</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conoce en cualquier instante cuántos autos y personas se encuentran dentro de la privada con reporte de estancia.</p>
+</div>
+<div class="bg-surface-container-lowest text-on-surface p-space-md rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[32px] mb-space-xs">thumb_up</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Experiencia VIP</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tus visitas son recibidas de forma profesional y rápida mediante código QR sin bajar la ventanilla ni entregar identificaciones oficiales.</p>
+</div>
+<div class="bg-surface-container-lowest text-on-surface p-space-md rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[32px] mb-space-xs">trending_up</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Plusvalía Inmobiliaria</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">La tecnología moderna y los accesos de vanguardia elevan el valor comercial por metro cuadrado de cada propiedad.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 6: SECTORES QUE ATENDEMOS -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="text-center max-w-3xl mx-auto mb-space-xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Versatilidad de Despliegue</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">Sectores que confían en HEYLEX</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Adaptamos la robustez del hardware y los flujos de software a la escala y criticidad de cada industria.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">villa</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Fraccionamientos y Privadas</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Elimina filas de visitas en fines de semana, controla a proveedores de servicio y automatiza la cuota de mantenimiento.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Residencial →</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">apartment</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Torres y Condominios</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Acceso peatonal mediante torniquetes con reconocimiento facial, elevadores inteligentes y caseta vehicular subterránea.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Departamental →</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">local_parking</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Estacionamientos Comerciales</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tarificación automatizada por minutos u horas, emisión de tickets con código QR o código de barras y cajeros automáticos.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Parking →</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">factory</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Parques Industriales &amp; CEDIS</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Registro minucioso de tractocamiones, verificación de transportistas, inspección vehicular con fotos y pesaje integrado.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Logística →</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">corporate_fare</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Edificios Corporativos</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gestión de gafetes virtuales temporales para contratistas, auditorías de visitas ejecutivas y control de áreas restringidas.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Corporativa →</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl hover:bg-surface-container transition-all group">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex items-center justify-center mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">shopping_cart</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-space-xs">Plazas &amp; Centros Comerciales</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Control de andenes de carga/descarga para locatarios, estacionamiento guiado y monitoreo de afluencia masiva.</p>
+<div class="mt-space-md font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Ver Solución Retail →</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 7: TECNOLOGÍA HEYLEX & DASHBOARD MOCKUP -->
+<section class="w-full py-space-xl bg-surface-container-high text-on-surface overflow-hidden">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Left: Feature Bullet Points -->
+<div class="lg:col-span-5 space-y-space-md">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Software Cloud HEYLEX Core</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">Un centro de mando inteligente en la palma de tu mano</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Administra carriles, consulta aforos en vivo y genera reportes periciales en formato PDF con solo un clic. Diseñado para administradores exigentes y comités vecinales.
+          </p>
+<div class="space-y-space-sm pt-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary text-secondary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">cell_tower</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Sincronización Cloud en Tiempo Real</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cualquier evento ocurrido en la caseta se refleja en milisegundos en la app y portal web.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary text-secondary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">photo_camera_front</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Foto-Evidencia por Carril</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Doble toma fotográfica: ángulo de la placa y rostro del conductor en cada cruce.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary text-secondary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">security_update_good</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Modo Autónomo Offline</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Si la conexión a internet falla localmente, las barreras continúan operando con memoria en caché.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Modern Mockup Dashboard Panel -->
+<div class="lg:col-span-7">
+<div class="bg-primary text-on-primary rounded-xl p-space-md shadow-xl border-l-4 border-secondary-fixed">
+<!-- Simulated Window Controls -->
+<div class="flex items-center justify-between pb-space-sm mb-space-md bg-primary-container/70 p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="w-3 h-3 rounded-full bg-secondary-fixed"></span>
+<span class="w-3 h-3 rounded-full bg-surface-container-high"></span>
+<span class="ml-space-sm font-label-sm text-label-sm text-primary-fixed">HEYLEX Cloud Enterprise v3.4 - Tablero Operativo</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-secondary-fixed">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></span>
+<span class="">Servidor: Villahermosa Central (Óptimo)</span>
+</div>
+</div>
+<!-- Mini Dashboard Metrics -->
+<div class="grid grid-cols-3 gap-space-sm mb-space-md">
+<div class="bg-primary-container p-space-sm rounded-lg">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase">Aforo Actual</span>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">184 <span class="text-secondary-fixed font-normal text-body-sm">vehículos</span></div>
+</div>
+<div class="bg-primary-container p-space-sm rounded-lg">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase">Pases QR Hoy</span>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">312 <span class="text-secondary-fixed font-normal text-body-sm">emitidos</span></div>
+</div>
+<div class="bg-primary-container p-space-sm rounded-lg">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase">Alertas Activas</span>
+<div class="font-headline-md text-headline-md font-bold text-secondary-fixed">0 <span class="text-primary-fixed font-normal text-body-sm">incidencias</span></div>
+</div>
+</div>
+<!-- Simulated Live Event Table -->
+<div class="bg-primary-container/40 rounded-lg p-space-sm space-y-space-xs">
+<div class="font-label-sm text-label-sm uppercase text-primary-fixed pb-space-xs flex justify-between">
+<span class="">Últimos tránsitos auditados</span>
+<span class="">Actualizado en tiempo real</span>
+</div>
+<div class="grid grid-cols-4 items-center bg-primary-container p-space-xs rounded text-label-sm font-medium">
+<span class="text-secondary-fixed">14:32:11</span>
+<span class="">WTL-902-A</span>
+<span class="">Residente (TAG)</span>
+<span class="text-right text-secondary-fixed font-bold">APROBADO</span>
+</div>
+<div class="grid grid-cols-4 items-center bg-primary-container p-space-xs rounded text-label-sm font-medium">
+<span class="text-secondary-fixed">14:30:45</span>
+<span class="">VSP-441-B</span>
+<span class="">Visita QR #882</span>
+<span class="text-right text-secondary-fixed font-bold">APROBADO</span>
+</div>
+<div class="grid grid-cols-4 items-center bg-primary-container p-space-xs rounded text-label-sm font-medium">
+<span class="text-secondary-fixed">14:28:02</span>
+<span class="">DHL-Express</span>
+<span class="">Paquetería</span>
+<span class="text-right text-secondary-fixed font-bold">APROBADO</span>
+</div>
+</div>
+<!-- Actuator Simulation Button -->
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary-fixed">Control Manual Remoto:</span>
+<div class="inline-flex rounded-lg overflow-hidden shadow-sm">
+<button class="px-space-md py-space-xs bg-primary-container text-on-primary font-label-sm text-label-sm hover:bg-primary-container/80 transition-colors" type="button">Cerrar Pluma</button>
+<button class="px-space-md py-space-xs bg-secondary-fixed text-primary font-label-sm text-label-sm font-bold hover:bg-secondary-fixed-dim transition-colors" type="button">Abrir Caseta</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 8: TESTIMONIOS Y CASOS DE ÉXITO -->
+<section class="w-full py-space-xl bg-surface">
+<div class="max-w-7xl mx-auto px-gutter">
+<div class="text-center max-w-3xl mx-auto mb-space-xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Casos Reales</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">La tranquilidad de nuestros clientes en números y palabras</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Conoce la experiencia de comités directivos y administradores de plazas que transformaron sus accesos con HEYLEX.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Testimonio 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface italic">
+              "El cambio en la caseta fue inmediato. Las filas de visitantes de los fines de semana desaparecieron gracias a los códigos QR enviados por WhatsApp. Los vecinos están fascinados con la app."
+            </p>
+</div>
+<div class="pt-space-md mt-space-md flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+<div class="w-10 h-10 rounded-full bg-primary text-secondary-fixed flex items-center justify-center font-bold">
+              FM
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary">Lic. Fernando Morales</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Pte. Asoc. Colonos Residencial Campestre</div>
+</div>
+</div>
+</div>
+<!-- Testimonio 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface italic">
+              "El control automatizado de plumas y el módulo de cobranza de HEYLEX nos permitió auditar cada peso en el estacionamiento comercial y eliminar discrepancias de caja por completo."
+            </p>
+</div>
+<div class="pt-space-md mt-space-md flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+<div class="w-10 h-10 rounded-full bg-primary text-secondary-fixed flex items-center justify-center font-bold">
+              MR
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary">Ing. Marcela Rincón</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Administradora General, Plaza Las Palmas</div>
+</div>
+</div>
+</div>
+<!-- Testimonio 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="space-y-space-md">
+<div class="flex text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface italic">
+              "La atención personalizada y el soporte técnico 24/7 en Villahermosa hacen de HEYLEX el mejor aliado de seguridad. Resolvieron en horas lo que otras empresas tardaban semanas."
+            </p>
+</div>
+<div class="pt-space-md mt-space-md flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+<div class="w-10 h-10 rounded-full bg-primary text-secondary-fixed flex items-center justify-center font-bold">
+              CM
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary">Carlos Méndez</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Gerente de Operaciones, Torre Premier</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 9: PREGUNTAS FRECUENTES (FAQ Acordeón) -->
+<section class="w-full py-space-xl bg-surface-container-low">
+<div class="max-w-4xl mx-auto px-gutter">
+<div class="text-center mb-space-xl space-y-space-xs">
+<span class="font-label-md text-label-md uppercase text-secondary font-bold tracking-wider">Dudas Frecuentes</span>
+<h2 class="font-headline-lg text-headline-lg text-primary font-bold">Respuestas claras a tus inquietudes de implementación</h2>
+</div>
+<div class="space-y-space-sm" id="faq-container">
+<!-- FAQ 1 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Cómo funciona el acceso mediante código QR?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            El residente o inquilino genera una invitación desde la App HEYLEX o WhatsApp, definiendo fecha, hora e identidad del visitante. El sistema entrega una imagen con código QR encriptado de uso único o temporal. Al llegar a la caseta, el visitante muestra el código frente al escáner óptico del tótem y la pluma se abre automáticamente en menos de 2 segundos.
+          </div>
+</div>
+<!-- FAQ 2 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Qué equipos y barreras vehiculares son compatibles con HEYLEX?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            Nuestros controladores son compatibles con el 98% de las marcas líderes en el mercado (Came, BFT, Faac, Wejoin, AccessPRO, ZKTeco). Si ya cuentas con barreras instaladas, podemos integrar nuestra tecnología sin necesidad de sustituir tus plumas existentes.
+          </div>
+</div>
+<!-- FAQ 3 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Cuánto tiempo toma la instalación e implementación en mi privada?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            Para un desarrollo residencial típico de 2 a 4 carriles, la instalación física de hardware, configuración de software y pruebas operativas toma entre 3 y 5 días hábiles, garantizando que el paso vehicular nunca quede completamente clausurado.
+          </div>
+</div>
+<!-- FAQ 4 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Ofrecen operadores de seguridad física y capacitación?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            Sí. Proveemos el servicio integral: personal de caseta uniformado, capacitado en servicio al cliente y resolución de contingencias, o bien capacitamos a tu equipo actual de guardias para que dominen la plataforma.
+          </div>
+</div>
+<!-- FAQ 5 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Cómo se maneja el soporte técnico ante una falla de energía o internet?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            Todos nuestros sistemas incluyen respaldo UPS de batería industrial para operar hasta 6 horas continuas ante apagones, además de memoria interna autónoma que valida TAGs y pases QR incluso si el servicio de internet se interrumpe localmente.
+          </div>
+</div>
+<!-- FAQ 6 -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md cursor-pointer faq-item" onclick="toggleFaq(this)">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">¿Se adapta a desarrollos pequeños o solo a grandes complejos?</h3>
+<span class="material-symbols-outlined text-primary faq-icon transition-transform">expand_more</span>
+</div>
+<div class="faq-content hidden mt-space-sm pt-space-sm text-body-md font-body-md text-on-surface-variant">
+            HEYLEX es 100% modular. Atendemos desde privadas familiares de 20 casas hasta parques industriales y macrocondominios de más de 1,500 lotes con múltiples casetas y carriles de residentes, visitas y transporte pesado.
+          </div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 10: CTA FINAL DE ALTA CONVERSIÓN CON FORMULARIO INTEGRADO -->
+<section class="w-full py-space-xl bg-primary text-on-primary relative overflow-hidden" id="contacto-demo">
+<div class="max-w-7xl mx-auto px-gutter relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Callout info -->
+<div class="lg:col-span-6 space-y-space-md">
+<span class="font-label-md text-label-md uppercase text-secondary-fixed font-bold tracking-wider">Demostración en Vivo &amp; Asesoría Técnica</span>
+<h2 class="font-display-lg text-display-lg font-bold leading-tight">Transforma la seguridad y operación de tu residencial con HEYLEX</h2>
+<p class="font-body-lg text-body-lg text-primary-fixed">
+            Agenda una sesión personalizada sin costo en tu desarrollo o en nuestras oficinas corporativas. Te presentaremos un plan técnico y financiero a la medida de tu presupuesto.
+          </p>
+<div class="space-y-space-sm pt-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold">✓</span>
+<span class="font-body-md text-body-md text-on-primary">Diagnóstico técnico en sitio sin compromiso</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold">✓</span>
+<span class="font-body-md text-body-md text-on-primary">Prueba en vivo del sistema de invitaciones QR</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold">✓</span>
+<span class="font-body-md text-body-md text-on-primary">Propuesta formal con corrida de amortización</span>
+</div>
+</div>
+<div class="pt-space-md flex items-center gap-space-md">
+<div class="p-space-sm bg-primary-container rounded-lg">
+<div class="font-label-sm text-label-sm text-primary-fixed uppercase">Teléfono de Proyectos</div>
+<div class="font-headline-sm text-headline-sm text-secondary-fixed font-bold">993 378 4115</div>
+</div>
+<div class="p-space-sm bg-primary-container rounded-lg">
+<div class="font-label-sm text-label-sm text-primary-fixed uppercase">Correo Institucional</div>
+<div class="font-headline-sm text-headline-sm text-on-primary font-bold">ventas@heylex.mx</div>
+</div>
+</div>
+</div>
+<!-- Formulario B2B Integrado -->
+<div class="lg:col-span-6">
+<div class="bg-surface text-on-surface p-space-lg rounded-xl shadow-xl">
+<h3 class="font-headline-md text-headline-md font-bold text-primary mb-space-xs">Solicitar Cotización Formal</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Un ingeniero de proyectos HEYLEX se comunicará en menos de 2 horas hábiles.</p>
+<form class="space-y-space-md" onsubmit="handleDemoSubmit(event)">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Nombre Completo *</label>
+<input class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ej. Roberto Garza" required="" type="text">
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Teléfono Móvil / WhatsApp *</label>
+<input class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="993 123 4567" required="" type="tel">
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Correo Electrónico *</label>
+<input class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="ejemplo@comite.mx" required="" type="email">
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Tipo de Desarrollo *</label>
+<select class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary">
+<option>Fraccionamiento / Residencial Privado</option>
+<option>Torre de Departamentos / Condominio</option>
+<option>Estacionamiento Público / Comercial</option>
+<option>Parque Industrial / Corporativo</option>
+<option>Otro Sector</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Ciudad / Estado *</label>
+<input class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ej. Villahermosa, Tabasco" required="" type="text">
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">No. de Lotes / Cajones aprox.</label>
+<input class="w-full h-11 px-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ej. 120 viviendas" type="text">
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase text-on-surface-variant mb-1">Comentarios o Requerimientos Especiales</label>
+<textarea class="w-full p-space-sm rounded bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ej. Queremos sustituir bitácoras en papel y colocar plumas automáticas..." rows="2"></textarea>
+</div>
+<button class="w-full h-12 bg-secondary-fixed text-primary hover:bg-secondary-fixed-dim font-label-lg text-label-lg uppercase rounded shadow-md transition-all font-bold flex items-center justify-center gap-space-xs" type="submit">
+<span class="">Solicitar Cotización Ahora</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<div class="hidden p-space-sm bg-secondary-fixed/20 text-primary rounded font-label-sm text-label-sm text-center" id="form-feedback">
+                ¡Solicitud recibida! Un especialista se comunicará en breve al teléfono indicado.
+              </div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Script for FAQ and Micro-interactions -->
+<script>
+    function toggleFaq(element) {
+      const content = element.querySelector('.faq-content');
+      const icon = element.querySelector('.faq-icon');
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.textContent = 'expand_less';
+        element.classList.add('bg-surface-container-low');
+      } else {
+        content.classList.add('hidden');
+        icon.textContent = 'expand_more';
+        element.classList.remove('bg-surface-container-low');
+      }
+    }
+
+    function handleDemoSubmit(event) {
+      event.preventDefault();
+      const feedback = document.getElementById('form-feedback');
+      feedback.classList.remove('hidden');
+      setTimeout(() => {
+        event.target.reset();
+      }, 1000);
+    }
+  </script>
+</div></main><footer class="w-full bg-tertiary text-on-tertiary py-space-xl shadow-inner"><div class="max-w-7xl mx-auto px-gutter grid grid-cols-1 md:grid-cols-4 gap-space-xl"><div class="space-y-space-md"><div class="inline-flex items-center gap-space-xs p-space-xs bg-surface-container-lowest rounded-lg shadow-sm"><div class="w-9 h-9 rounded bg-primary flex items-center justify-center text-secondary-fixed"><svg class="w-5 h-5" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 6V26M24 6V26M8 16H24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="16" r="2" fill="#d4f034"></circle></svg></div><div class="flex flex-col pr-space-xs"><span class="font-display-lg text-[19px] font-extrabold tracking-tight text-primary leading-none">HEYLEX</span><span class="font-label-sm text-[8px] italic text-secondary font-bold leading-tight">...Tu lugar seguro</span></div></div><p class="font-body-sm text-body-sm text-on-tertiary-container">Infraestructura avanzada en control de accesos vehiculares y peatonales, analítica LPR y seguridad perimetral de grado institucional.</p><div class="font-label-sm text-label-sm text-secondary-fixed">Ventas: 993 378 4115</div></div><div><h4 class="font-label-lg text-label-lg uppercase tracking-wider text-on-tertiary mb-space-md">Plataforma</h4><ul class="space-y-space-sm font-body-sm text-body-sm text-on-tertiary-container"><li class="hover:text-on-tertiary cursor-pointer transition-colors">Reconocimiento LPR de Alta Precisión</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Actuadores y Barreras Automáticas</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Credencialización QR &amp; Biometría</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Auditoría de Tránsitos en Tiempo Real</li></ul></div><div><h4 class="font-label-lg text-label-lg uppercase tracking-wider text-on-tertiary mb-space-md">Sectores</h4><ul class="space-y-space-sm font-body-sm text-body-sm text-on-tertiary-container"><li class="hover:text-on-tertiary cursor-pointer transition-colors">Corporativos y Centros de Negocios</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Parques Industriales y Logística</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Residenciales y Fraccionamientos</li><li class="hover:text-on-tertiary cursor-pointer transition-colors">Estacionamientos Comerciales</li></ul></div><div><h4 class="font-label-lg text-label-lg uppercase tracking-wider text-on-tertiary mb-space-md">Contacto Corporativo</h4><p class="font-body-sm text-body-sm text-on-tertiary-container mb-space-sm">Atención directa a operaciones y licitaciones a nivel nacional.</p><div class="font-body-sm text-body-sm text-on-tertiary font-bold mb-space-xs">ventas@heylex.mx</div><div class="font-body-sm text-body-sm text-on-tertiary-container mb-space-md">Villahermosa, Tabasco | Cobertura México</div><a class="inline-flex items-center justify-center w-full h-10 px-space-md font-label-sm text-label-sm uppercase text-primary bg-secondary-fixed hover:bg-secondary-fixed-dim rounded-lg transition-colors" data-path="solicitar-demostracion" href="#">Solicitar Cotización</a></div></div><div class="max-w-7xl mx-auto px-gutter mt-space-xl pt-space-lg flex flex-col sm:flex-row items-center justify-between font-label-sm text-label-sm text-on-tertiary-container gap-space-md"><p class="">© 2025 HEYLEX Control de Acceso. Todos los derechos reservados.</p><div class="flex items-center gap-space-lg"><span class="hover:text-on-tertiary cursor-pointer transition-colors">Aviso de Privacidad</span><span class="hover:text-on-tertiary cursor-pointer transition-colors">Términos de Servicio</span><span class="hover:text-on-tertiary cursor-pointer transition-colors">Seguridad de Datos</span></div></div></footer>
+
+</body></html>
