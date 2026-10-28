@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEYLEX | Panel de Administración y Control de Licencias</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#002546",
+            "primary-container": "#0d3b66",
+            secondary: "#576500",
+            "secondary-fixed": "#d4f034",
+            "surface": "#f8f9fc",
+            "surface-container-low": "#f2f4f7",
+            "surface-container": "#eceef1",
+            "surface-container-high": "#e6e8eb",
+            "surface-container-lowest": "#ffffff",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            sans: ["Montserrat", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Montserrat', sans-serif; }
+    .badge-active { background-color: rgba(212, 240, 52, 0.25); color: #002546; border: 1px solid #b9d307; }
+    .badge-suspended { background-color: #ffdad6; color: #ba1a1a; border: 1px solid #ffb4ab; }
+  </style>
+</head>
+<body class="bg-surface text-[#191c1e] min-h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-primary text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-secondary-fixed text-primary flex items-center justify-center font-bold shadow-sm">
+            <span class="material-symbols-outlined text-2xl font-bold">admin_panel_settings</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-lg font-extrabold tracking-tight leading-none">HEYLEX</span>
+            <span class="text-[9px] text-secondary-fixed font-bold uppercase tracking-wider">Admin Portal</span>
+          </div>
+        </a>
+        <div class="hidden md:block h-6 w-[1px] bg-white/20 mx-2"></div>
+        <div class="hidden md:flex items-center gap-2 text-xs text-white/80">
+          <span class="material-symbols-outlined text-sm text-secondary-fixed">shield</span>
+          <span>Gestión de Inmuebles, Cobranza & Licencias</span>
+        </div>
+      </div>
+
+      <!-- User Profile / Session Controls -->
+      <div class="flex items-center gap-3" id="admin-header-actions">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- LOGIN CARD (WHEN NOT AUTHENTICATED) -->
+    <div id="admin-login-view" class="max-w-md mx-auto my-12 bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-primary text-secondary-fixed rounded-2xl flex items-center justify-center mx-auto mb-3 shadow">
+          <span class="material-symbols-outlined text-3xl">lock</span>
+        </div>
+        <h2 class="text-xl font-bold text-primary">Acceso para Administradores</h2>
+        <p class="text-xs text-gray-500 mt-1">Ingresa con tus credenciales de comité o administración del fraccionamiento.</p>
+      </div>
+
+      <div id="admin-login-error" class="hidden mb-4 p-3 rounded-lg bg-error-container text-error text-xs font-semibold flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">error</span>
+        <span id="admin-login-error-msg">Error de acceso</span>
+      </div>
+
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Correo de Administrador</label>
+          <input type="email" id="admin-email" required value="admin@heylex.mx" 
+            class="w-full h-11 px-3.5 rounded-lg border border-gray-300 text-sm outline-none focus:border-primary">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Contraseña</label>
+          <input type="password" id="admin-password" required value="admin123" 
+            class="w-full h-11 px-3.5 rounded-lg border border-gray-300 text-sm outline-none focus:border-primary">
+        </div>
+
+        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-[11px] text-gray-600 space-y-1">
+          <div class="font-bold text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs text-secondary">info</span> Cuentas de demostración:
+          </div>
+          <div>• <strong>admin@heylex.mx</strong> (Gestiona Cumbres Del Ángel y Torre Altavista)</div>
+          <div>• <strong>superadmin@heylex.mx</strong> (Gestiona Cumbres y Parque Industrial)</div>
+          <div class="text-[10px]">Contraseña: <strong>admin123</strong></div>
+        </div>
+
+        <button type="submit" class="w-full h-11 bg-primary text-secondary-fixed hover:bg-primary-container font-bold text-xs uppercase rounded-lg shadow transition-all flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-lg">login</span>
+          <span>Entrar al Panel de Control</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- DASHBOARD VIEW (WHEN AUTHENTICATED) -->
+    <div id="admin-dashboard-view" class="hidden space-y-6">
+
+      <!-- TOP BAR: MULTITENANT SELECTOR & CONTROLS -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-primary-container text-secondary-fixed flex items-center justify-center font-bold shrink-0">
+            <span class="material-symbols-outlined text-2xl">location_city</span>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-gray-400">Fraccionamiento / Inmueble Actual</label>
+            <select id="community-selector" class="font-bold text-primary text-base sm:text-lg bg-transparent border-b-2 border-primary outline-none cursor-pointer py-0.5">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <span id="current-admin-name" class="text-xs font-semibold text-gray-600 hidden sm:inline"></span>
+          <a href="index.html" class="h-9 px-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-primary text-xs font-bold uppercase flex items-center gap-1 transition-all">
+            <span class="material-symbols-outlined text-base">public</span>
+            <span>Ver Landing</span>
+          </a>
+          <button id="admin-logout-btn" class="h-9 px-3 rounded-lg bg-error-container text-error hover:bg-error hover:text-white text-xs font-bold uppercase flex items-center gap-1 transition-all">
+            <span class="material-symbols-outlined text-base">logout</span>
+            <span>Salir</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI METRIC CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- KPI 1: Total Residentes -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl">groups</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Lotes/Deptos</span>
+            <div id="kpi-total-residents" class="text-2xl font-black text-primary">0</div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Licencias Activas (Al corriente) -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-lime-100 text-[#576500] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl font-bold">verified</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Al Corriente (Activos)</span>
+            <div id="kpi-active-residents" class="text-2xl font-black text-[#576500]">0</div>
+          </div>
+        </div>
+
+        <!-- KPI 3: Morosos / Suspendidos -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-red-50 text-error flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl font-bold">block</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">En Mora (Bloqueados)</span>
+            <div id="kpi-suspended-residents" class="text-2xl font-black text-error">0</div>
+          </div>
+        </div>
+
+        <!-- KPI 4: Cartera Vencida -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl font-bold">payments</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cartera Vencida</span>
+            <div id="kpi-debt-amount" class="text-xl font-black text-amber-800">$0.00 MXN</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RESIDENTS TABLE & ACTIONS SECTION -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
+        
+        <!-- Table Header Controls: Search & Status Filters -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+          
+          <!-- Filter Tabs -->
+          <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase">
+            <button class="filter-tab-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm" data-filter="ALL">Todos</button>
+            <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary" data-filter="ACTIVE">Al Corriente</button>
+            <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-error" data-filter="SUSPENDED">Morosos / Suspendidos</button>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="relative flex-1 max-w-xs">
+            <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
+            <input type="text" id="resident-search-input" placeholder="Buscar por nombre, casa, lote..." 
+              class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+          </div>
+
+        </div>
+
+        <!-- Dynamic Resident Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-700">
+            <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
+              <tr>
+                <th class="py-3 px-4">Residente / Titular</th>
+                <th class="py-3 px-4">Ubicación / Unidad</th>
+                <th class="py-3 px-4">Estatus Licencia</th>
+                <th class="py-3 px-4">Adeudo Acumulado</th>
+                <th class="py-3 px-4">Último Pago</th>
+                <th class="py-3 px-4 text-center">Acciones de Control</th>
+              </tr>
+            </thead>
+            <tbody id="residents-table-body" class="divide-y divide-gray-100">
+              <!-- Populated via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state message -->
+        <div id="table-empty-state" class="hidden text-center py-10 text-gray-500 text-xs">
+          No se encontraron residentes con el criterio de búsqueda seleccionado.
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- REASON MODAL FOR SUSPENSION -->
+  <div id="suspension-modal" class="fixed inset-0 bg-primary/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-error-container text-error flex items-center justify-center font-bold">
+          <span class="material-symbols-outlined">block</span>
+        </div>
+        <div>
+          <h4 class="font-bold text-base text-primary">Suspender Acceso Residencial</h4>
+          <p id="modal-resident-name" class="text-xs text-gray-500">Residente</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-600 leading-relaxed">
+        Al suspender la licencia, el residente no podrá generar su código QR dinámico ni pases de visita en caseta.
+      </p>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Motivo de Suspensión / Adeudo</label>
+        <textarea id="suspension-reason-input" rows="2" class="w-full p-2.5 rounded-lg border border-gray-300 text-xs outline-none focus:border-error" placeholder="Ej. Cuotas de mantenimiento vencidas (2 meses pendientes)"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="cancel-suspension-btn" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold uppercase">
+          Cancelar
+        </button>
+        <button id="confirm-suspension-btn" class="px-4 py-2 rounded-lg bg-error hover:bg-red-700 text-white text-xs font-bold uppercase shadow">
+          Confirmar Suspensión
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="admin-toast" class="fixed bottom-5 right-5 z-50 hidden bg-primary text-white px-4 py-3 rounded-xl shadow-2xl border border-secondary-fixed/30 flex items-center gap-3 text-xs">
+    <span class="material-symbols-outlined text-secondary-fixed text-lg">check_circle</span>
+    <span id="admin-toast-text">Acción realizada con éxito</span>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
