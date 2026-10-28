@@ -186,7 +186,12 @@ const HeylexAPI = (function () {
   function getStoredCommunities() {
     try {
       const data = localStorage.getItem(STORAGE_KEY_COMMUNITIES);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length >= SEED_COMMUNITIES.length) {
+          return parsed;
+        }
+      }
     } catch (e) {}
     localStorage.setItem(STORAGE_KEY_COMMUNITIES, JSON.stringify(SEED_COMMUNITIES));
     return SEED_COMMUNITIES;
@@ -195,7 +200,21 @@ const HeylexAPI = (function () {
   function getStoredResidents() {
     try {
       const data = localStorage.getItem(STORAGE_KEY_RESIDENTS);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          // Asegurar que las cuentas semilla (admins y residentes) siempre existan
+          const merged = [...parsed];
+          SEED_USERS.forEach((seed) => {
+            const exists = merged.find((u) => u.email.toLowerCase() === seed.email.toLowerCase());
+            if (!exists) {
+              merged.push(seed);
+            }
+          });
+          localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(merged));
+          return merged;
+        }
+      }
     } catch (e) {}
     localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(SEED_USERS));
     return SEED_USERS;
