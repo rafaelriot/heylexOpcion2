@@ -907,10 +907,14 @@ const HeylexAPI = (function () {
 
     // 9. Métricas y KPIs Financieros (GET /api/v1/admin/communities/{id}/metrics)
     async getCommunityMetrics(communityId) {
-      await delay(200);
-      const residents = getStoredResidents().filter(
-        (u) => u.role === 'RESIDENTE' && u.communityId === communityId
-      );
+      let residents = [];
+      try {
+        residents = await this.getCommunityResidents(communityId, 'ALL', '');
+      } catch (e) {
+        residents = getStoredResidents().filter(
+          (u) => u.role === 'RESIDENTE' && u.communityId === communityId
+        );
+      }
       const community = getStoredCommunities().find((c) => c.id === communityId);
 
       const totalResidents = residents.length;

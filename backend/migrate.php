@@ -29,7 +29,24 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 
-    // 2. Cargar y ejecutar backend/sync_master_data.sql
+    // 2. Comprobar si las tablas base existen; si no, cargar seteinc_app_desarrollo.sql
+    $stmtCheck = $pdo->query("SHOW TABLES LIKE 'usuarios'");
+    if (!$stmtCheck->fetch()) {
+        $baseSchemaFile = dirname(__DIR__) . '/seteinc_app_desarrollo.sql';
+        if (file_exists($baseSchemaFile)) {
+            $rawBase = file_get_contents($baseSchemaFile);
+            $cleanBase = preg_replace('/^--.*$/m', '', $rawBase);
+            $cleanBase = preg_replace('/USE `?seteinc_app`?;/i', '', $cleanBase);
+            $baseQueries = array_filter(array_map('trim', explode(';', $cleanBase)));
+            foreach ($baseQueries as $bq) {
+                if (!empty($bq)) {
+                    try { $pdo->exec($bq); } catch (Exception $e) {}
+                }
+            }
+        }
+    }
+
+    // 3. Cargar y ejecutar backend/sync_master_data.sql
     $sqlFile = __DIR__ . '/sync_master_data.sql';
     if (!file_exists($sqlFile)) {
         throw new Exception("El archivo $sqlFile no fue encontrado.");
