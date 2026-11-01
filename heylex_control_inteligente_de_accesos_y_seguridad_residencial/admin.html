@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HEYLEX | Panel de Administración y Control de Licencias</title>
   
+  <!-- PWA & Mobile App Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#002546">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HEYLEX Admin">
+  
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,7 +80,11 @@
 
       <!-- User Profile / Session Controls -->
       <div class="flex items-center gap-3" id="admin-header-actions">
-        <!-- Injected dynamically -->
+        <!-- Live DB Status Indicator -->
+        <div id="db-health-badge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-white/10 text-white/70 border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+          <span>Verificando BD...</span>
+        </div>
       </div>
     </div>
   </header>
@@ -199,52 +214,416 @@
 
       </div>
 
-      <!-- RESIDENTS TABLE & ACTIONS SECTION -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
-        
-        <!-- Table Header Controls: Search & Status Filters -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
-          
-          <!-- Filter Tabs -->
-          <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase">
-            <button class="filter-tab-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm" data-filter="ALL">Todos</button>
-            <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary" data-filter="ACTIVE">Al Corriente</button>
-            <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-error" data-filter="SUSPENDED">Morosos / Suspendidos</button>
+      <!-- MAIN NAVIGATION TABS FOR DASHBOARD TABLES -->
+      <div class="flex items-center gap-2 overflow-x-auto border-b border-gray-200 pb-2">
+        <button class="dash-tab-btn active px-4 py-2 rounded-xl bg-primary text-secondary-fixed font-bold text-xs uppercase flex items-center gap-2 shadow transition-all shrink-0" data-tab="residents">
+          <span class="material-symbols-outlined text-lg">group</span>
+          <span>Padrón Residentes</span>
+        </button>
+        <button class="dash-tab-btn px-4 py-2 rounded-xl bg-white text-gray-600 hover:text-primary font-bold text-xs uppercase flex items-center gap-2 border border-gray-200 shadow-sm transition-all shrink-0" data-tab="access_logs">
+          <span class="material-symbols-outlined text-lg text-secondary">history</span>
+          <span>Bitácora de Caseta (Accesos)</span>
+        </button>
+        <button class="dash-tab-btn px-4 py-2 rounded-xl bg-white text-gray-600 hover:text-primary font-bold text-xs uppercase flex items-center gap-2 border border-gray-200 shadow-sm transition-all shrink-0" data-tab="visits">
+          <span class="material-symbols-outlined text-lg text-primary">qr_code_2</span>
+          <span>Visitas Programadas</span>
+        </button>
+        <button class="dash-tab-btn px-4 py-2 rounded-xl bg-white text-gray-600 hover:text-primary font-bold text-xs uppercase flex items-center gap-2 border border-gray-200 shadow-sm transition-all shrink-0" data-tab="enrollment">
+          <span class="material-symbols-outlined text-lg text-amber-600">key</span>
+          <span>Códigos de Enrolamiento</span>
+        </button>
+        <button class="dash-tab-btn px-4 py-2 rounded-xl bg-white text-gray-600 hover:text-primary font-bold text-xs uppercase flex items-center gap-2 border border-gray-200 shadow-sm transition-all shrink-0" data-tab="finance">
+          <span class="material-symbols-outlined text-lg text-emerald-600">payments</span>
+          <span>Finanzas & Cuotas</span>
+        </button>
+      </div>
+
+      <!-- ================= PANE 1: RESIDENTS TABLE ================= -->
+      <div id="tab-pane-residents" class="dash-pane space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
+          <!-- Table Header Controls: Search & Status Filters -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <!-- Filter Tabs -->
+            <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase">
+              <button class="filter-tab-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm" data-filter="ALL">Todos</button>
+              <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary" data-filter="ACTIVE">Al Corriente</button>
+              <button class="filter-tab-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-error" data-filter="SUSPENDED">Morosos / Suspendidos</button>
+            </div>
+            <!-- Search Bar -->
+            <div class="relative flex-1 max-w-xs">
+              <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
+              <input type="text" id="resident-search-input" placeholder="Buscar por nombre, casa, lote..." 
+                class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+            </div>
           </div>
 
-          <!-- Search Bar -->
-          <div class="relative flex-1 max-w-xs">
-            <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
-            <input type="text" id="resident-search-input" placeholder="Buscar por nombre, casa, lote..." 
-              class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+          <!-- Dynamic Resident Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-700">
+              <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
+                <tr>
+                  <th class="py-3 px-4">Residente / Titular</th>
+                  <th class="py-3 px-4">Ubicación / Unidad</th>
+                  <th class="py-3 px-4">Estatus Licencia</th>
+                  <th class="py-3 px-4">Adeudo Acumulado</th>
+                  <th class="py-3 px-4">Último Pago</th>
+                  <th class="py-3 px-4 text-center">Acciones de Control</th>
+                </tr>
+              </thead>
+              <tbody id="residents-table-body" class="divide-y divide-gray-100">
+                <!-- Populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty state message -->
+          <div id="table-empty-state" class="hidden text-center py-10 text-gray-500 text-xs">
+            No se encontraron residentes con el criterio de búsqueda seleccionado.
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PANE 2: BITÁCORA DE ACCESOS EN CASETA ================= -->
+      <div id="tab-pane-access_logs" class="dash-pane hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-lime-100 text-[#576500] flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">security</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary text-sm">Bitácora en Tiempo Real (apphistorialaccesos)</h3>
+                <p class="text-[11px] text-gray-500">Eventos de validación QR, pluma y caseta de vigilancia.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="logs-count-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary">0 eventos</span>
+              <button id="refresh-logs-btn" class="h-9 px-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-primary text-xs font-bold uppercase flex items-center gap-1 transition-all">
+                <span class="material-symbols-outlined text-base">sync</span>
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtros Inteligentes para Bitácora -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase overflow-x-auto">
+              <button class="logs-filter-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm shrink-0" data-filter="ALL">Todos</button>
+              <button class="logs-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-emerald-700 shrink-0" data-filter="PERMITTED">Permitidos</button>
+              <button class="logs-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-error shrink-0" data-filter="DENIED">Denegados</button>
+              <button class="logs-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary shrink-0" data-filter="ENTRADA">Entradas</button>
+              <button class="logs-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary shrink-0" data-filter="SALIDA">Salidas</button>
+            </div>
+            <div class="relative flex-1 max-w-xs">
+              <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
+              <input type="text" id="logs-search-input" placeholder="Buscar por nombre, placa, motivo..." 
+                class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-700">
+              <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
+                <tr>
+                  <th class="py-3 px-4">Fecha y Hora</th>
+                  <th class="py-3 px-4">Tipo</th>
+                  <th class="py-3 px-4">Usuario / Visitante</th>
+                  <th class="py-3 px-4">Unidad / Destino</th>
+                  <th class="py-3 px-4">Sentido</th>
+                  <th class="py-3 px-4">Resultado / Motivo</th>
+                  <th class="py-3 px-4 text-center">Guardia ID</th>
+                </tr>
+              </thead>
+              <tbody id="logs-table-body" class="divide-y divide-gray-100">
+                <!-- Populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PANE 3: VISITAS PROGRAMADAS ================= -->
+      <div id="tab-pane-visits" class="dash-pane hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 text-primary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">calendar_month</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary text-sm">Monitor de Pases QR de Visitas (appvisitasprogramadas)</h3>
+                <p class="text-[11px] text-gray-500">Invitaciones generadas por residentes para ingreso al desarrollo.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="visits-count-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary">0 visitas</span>
+              <button id="refresh-visits-btn" class="h-9 px-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-primary text-xs font-bold uppercase flex items-center gap-1 transition-all">
+                <span class="material-symbols-outlined text-base">sync</span>
+                <span>Refrescar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtros Inteligentes para Visitas -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase overflow-x-auto">
+              <button class="visits-filter-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm shrink-0" data-filter="ALL">Todas</button>
+              <button class="visits-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-emerald-700 shrink-0" data-filter="ACTIVE">Activas</button>
+              <button class="visits-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 shrink-0" data-filter="USED">Usadas / Expiradas</button>
+              <button class="visits-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-error shrink-0" data-filter="CANCELLED">Canceladas</button>
+            </div>
+            <div class="relative flex-1 max-w-xs">
+              <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
+              <input type="text" id="visits-search-input" placeholder="Buscar por visitante, anfitrión, placas..." 
+                class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-700">
+              <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
+                <tr>
+                  <th class="py-3 px-4">Visitante</th>
+                  <th class="py-3 px-4">Anfitrión (Residente)</th>
+                  <th class="py-3 px-4">Tipo y Vigencia</th>
+                  <th class="py-3 px-4">Vehículo / Placa</th>
+                  <th class="py-3 px-4">Motivo</th>
+                  <th class="py-3 px-4 text-center">Estatus Pase</th>
+                </tr>
+              </thead>
+              <tbody id="visits-table-body" class="divide-y divide-gray-100">
+                <!-- Populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PANE 4: CÓDIGOS DE ENROLAMIENTO ================= -->
+      <div id="tab-pane-enrollment" class="dash-pane hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden space-y-4 p-5">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">vpn_key</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary text-sm">Códigos de Enrolamiento (appinvitaciones)</h3>
+                <p class="text-[11px] text-gray-500">Claves para que nuevos residentes y administradores se den de alta.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="codes-count-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">0 códigos</span>
+              <button id="create-enrollment-btn" class="h-9 px-4 rounded-lg bg-secondary-fixed text-primary hover:bg-secondary-fixed-dim font-bold text-xs uppercase flex items-center gap-1.5 shadow transition-all">
+                <span class="material-symbols-outlined text-base">add</span>
+                <span>Generar Código</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtros Inteligentes para Códigos de Enrolamiento -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold uppercase overflow-x-auto">
+              <button class="codes-filter-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm shrink-0" data-filter="ALL">Todos</button>
+              <button class="codes-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary shrink-0" data-filter="RESIDENT">Residentes (INV)</button>
+              <button class="codes-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-amber-700 shrink-0" data-filter="ADMIN">Administradores (ADM)</button>
+              <button class="codes-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-emerald-700 shrink-0" data-filter="ACTIVE">Vigentes</button>
+            </div>
+            <div class="relative flex-1 max-w-xs">
+              <span class="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-lg">search</span>
+              <input type="text" id="codes-search-input" placeholder="Buscar por código (ej. INV-...)..." 
+                class="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-300 text-xs outline-none focus:border-primary">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-700">
+              <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
+                <tr>
+                  <th class="py-3 px-4">Código Clave</th>
+                  <th class="py-3 px-4">Tipo Invitado</th>
+                  <th class="py-3 px-4">Usos (Actual / Máx)</th>
+                  <th class="py-3 px-4">Fecha de Alta</th>
+                  <th class="py-3 px-4">Vencimiento</th>
+                  <th class="py-3 px-4 text-center">Estatus</th>
+                  <th class="py-3 px-4 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="enrollment-table-body" class="divide-y divide-gray-100">
+                <!-- Populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PANE 5: FINANZAS Y CONTROL DE CUOTAS ================= -->
+      <div id="tab-pane-finance" class="dash-pane hidden space-y-4">
+        <!-- Finance KPI Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+              <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase text-gray-500">Recaudado Este Mes</p>
+              <div id="finance-kpi-collected" class="text-lg font-black text-emerald-700">$0.00 MXN</div>
+              <span class="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-xs">trending_up</span> Verificado en tiempo real
+              </span>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-rose-100 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold shrink-0">
+              <span class="material-symbols-outlined text-2xl">warning</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase text-gray-500">Cartera Vencida (Mora)</p>
+              <div id="finance-kpi-overdue" class="text-lg font-black text-rose-700">$0.00 MXN</div>
+              <span id="finance-kpi-overdue-count" class="text-[10px] text-rose-600 font-semibold">0 cuotas vencidas</span>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-100 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shrink-0">
+              <span class="material-symbols-outlined text-2xl">pending_actions</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase text-gray-500">Cuotas Pendientes</p>
+              <div id="finance-kpi-pending" class="text-lg font-black text-amber-700">$0.00 MXN</div>
+              <span id="finance-kpi-pending-count" class="text-[10px] text-amber-600 font-semibold">0 por vencer</span>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
+              <span class="material-symbols-outlined text-2xl">pie_chart</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase text-gray-500">Tasa de Cobranza</p>
+              <div id="finance-kpi-rate" class="text-lg font-black text-primary">0%</div>
+              <span class="text-[10px] text-blue-600 font-semibold">Efectividad condominal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Finance Container -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-5 space-y-4">
+          <!-- Header and Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined">account_balance</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary text-sm">Contabilidad y Cobranza Condominal (appcuotas / apppagos)</h3>
+                <p class="text-[11px] text-gray-500">Control de cuotas ordinarias, extraordinarias, pagos bancarios y reactivación automática de códigos QR</p>
+              </div>
+            </div>
+
+            <!-- View Switcher & Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-semibold">
+                <button id="finance-view-cuotas-btn" class="px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm font-bold flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-sm">receipt_long</span>
+                  <span>Cuotas por Lote</span>
+                </button>
+                <button id="finance-view-pagos-btn" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-sm">history_edu</span>
+                  <span>Historial de Pagos</span>
+                </button>
+              </div>
+
+              <button id="btn-generate-cuota" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold uppercase flex items-center gap-1.5 transition-all">
+                <span class="material-symbols-outlined text-sm">add_circle</span>
+                <span>Nueva Cuota</span>
+              </button>
+
+              <button id="btn-open-payment-modal" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all">
+                <span class="material-symbols-outlined text-sm">point_of_sale</span>
+                <span>Registrar Pago</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SECTION A: CUOTAS TABLE VIEW -->
+          <div id="finance-cuotas-section" class="space-y-4">
+            <!-- Filters -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+                <button class="cuotas-filter-btn active px-3 py-1.5 rounded-lg bg-white text-primary shadow-sm shrink-0" data-filter="todas">Todas</button>
+                <button class="cuotas-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary shrink-0" data-filter="pendiente">Pendientes</button>
+                <button class="cuotas-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-rose-600 shrink-0" data-filter="vencida">Vencidas (Mora)</button>
+                <button class="cuotas-filter-btn px-3 py-1.5 rounded-lg text-gray-600 hover:text-emerald-600 shrink-0" data-filter="pagada">Pagadas</button>
+              </div>
+
+              <div class="relative w-full sm:w-72">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-sm">search</span>
+                <input id="cuotas-search-input" type="text" placeholder="Buscar por colono, lote o concepto..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-emerald-500 bg-gray-50/50">
+              </div>
+            </div>
+
+            <!-- Cuotas Table -->
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+              <table class="w-full text-left text-xs text-gray-700">
+                <thead class="bg-gray-50/75 text-gray-500 uppercase text-[10px] font-black tracking-wider border-b border-gray-100">
+                  <tr>
+                    <th class="py-3 px-3">Residente / Lote</th>
+                    <th class="py-3 px-3">Concepto & Tipo</th>
+                    <th class="py-3 px-3">Monto</th>
+                    <th class="py-3 px-3">Vencimiento</th>
+                    <th class="py-3 px-3">Estado Cuota</th>
+                    <th class="py-3 px-3">Estatus Caseta</th>
+                    <th class="py-3 px-3 text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="cuotas-table-body" class="divide-y divide-gray-100">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+            <div id="cuotas-empty-state" class="hidden text-center py-10 text-gray-500 text-xs">
+              No se encontraron registros de cuotas con los filtros seleccionados.
+            </div>
+          </div>
+
+          <!-- SECTION B: PAGOS TABLE VIEW -->
+          <div id="finance-pagos-section" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <span class="text-xs text-gray-500 font-semibold">Mostrando comprobantes y recibos de pago validados</span>
+              <div class="relative w-full sm:w-72">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-sm">search</span>
+                <input id="pagos-search-input" type="text" placeholder="Buscar por folio, SPEI o nombre..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-emerald-500 bg-gray-50/50">
+              </div>
+            </div>
+
+            <!-- Pagos Table -->
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+              <table class="w-full text-left text-xs text-gray-700">
+                <thead class="bg-gray-50/75 text-gray-500 uppercase text-[10px] font-black tracking-wider border-b border-gray-100">
+                  <tr>
+                    <th class="py-3 px-3">Folio Recibo</th>
+                    <th class="py-3 px-3">Residente / Lote</th>
+                    <th class="py-3 px-3">Concepto</th>
+                    <th class="py-3 px-3">Monto Pagado</th>
+                    <th class="py-3 px-3">Método / Referencia</th>
+                    <th class="py-3 px-3">Fecha de Pago</th>
+                    <th class="py-3 px-3">Registrado Por</th>
+                    <th class="py-3 px-3 text-right">Comprobante</th>
+                  </tr>
+                </thead>
+                <tbody id="pagos-table-body" class="divide-y divide-gray-100">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+            <div id="pagos-empty-state" class="hidden text-center py-10 text-gray-500 text-xs">
+              No se han registrado pagos aún.
+            </div>
           </div>
 
         </div>
-
-        <!-- Dynamic Resident Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-gray-700">
-            <thead class="bg-gray-50 text-[11px] font-bold uppercase text-gray-500 border-b border-gray-200">
-              <tr>
-                <th class="py-3 px-4">Residente / Titular</th>
-                <th class="py-3 px-4">Ubicación / Unidad</th>
-                <th class="py-3 px-4">Estatus Licencia</th>
-                <th class="py-3 px-4">Adeudo Acumulado</th>
-                <th class="py-3 px-4">Último Pago</th>
-                <th class="py-3 px-4 text-center">Acciones de Control</th>
-              </tr>
-            </thead>
-            <tbody id="residents-table-body" class="divide-y divide-gray-100">
-              <!-- Populated via JavaScript -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Empty state message -->
-        <div id="table-empty-state" class="hidden text-center py-10 text-gray-500 text-xs">
-          No se encontraron residentes con el criterio de búsqueda seleccionado.
-        </div>
-
       </div>
 
     </div>
@@ -290,6 +669,7 @@
     <span id="admin-toast-text">Acción realizada con éxito</span>
   </div>
 
+  <script src="ui-dialogs.js"></script>
   <script src="api.js"></script>
   <script src="admin.js"></script>
 </body>

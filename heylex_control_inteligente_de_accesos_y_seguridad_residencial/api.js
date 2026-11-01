@@ -14,6 +14,227 @@ const HeylexAPI = (function () {
   const STORAGE_KEY_INVITES = 'heylex_user_invites';
   const STORAGE_KEY_COMMUNITIES = 'heylex_communities_db';
   const STORAGE_KEY_RESIDENTS = 'heylex_residents_db';
+  const STORAGE_KEY_ENROLLMENT_CODES = 'heylex_enrollment_codes_db';
+  const STORAGE_KEY_CUOTAS = 'heylex_cuotas_db';
+  const STORAGE_KEY_PAGOS = 'heylex_pagos_db';
+
+  // Seed default cuotas (Finanzas Condominales)
+  const SEED_CUOTAS = [
+    {
+      id: 1,
+      communityId: 'com_001',
+      residentId: 'usr_001',
+      residentName: 'Ing. Carlos Mendoza R.',
+      unit: 'Casa 42-B',
+      concept: 'Mantenimiento Mensual Noviembre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-11-10',
+      status: 'pendiente',
+      createdAt: '2026-11-01 00:00:00'
+    },
+    {
+      id: 2,
+      communityId: 'com_001',
+      residentId: 'usr_001',
+      residentName: 'Ing. Carlos Mendoza R.',
+      unit: 'Casa 42-B',
+      concept: 'Mantenimiento Mensual Octubre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-10-10',
+      status: 'pagada',
+      createdAt: '2026-10-01 00:00:00'
+    },
+    {
+      id: 3,
+      communityId: 'com_001',
+      residentId: 'usr_002',
+      residentName: 'Lic. Ana Sofía Garza',
+      unit: 'Casa 18-A',
+      concept: 'Mantenimiento Mensual Octubre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-10-10',
+      status: 'vencida',
+      createdAt: '2026-10-01 00:00:00'
+    },
+    {
+      id: 4,
+      communityId: 'com_001',
+      residentId: 'usr_002',
+      residentName: 'Lic. Ana Sofía Garza',
+      unit: 'Casa 18-A',
+      concept: 'Mantenimiento Mensual Septiembre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-09-10',
+      status: 'vencida',
+      createdAt: '2026-09-01 00:00:00'
+    },
+    {
+      id: 5,
+      communityId: 'com_001',
+      residentId: 'usr_004',
+      residentName: 'Sra. Valeria Ortiz Blanco',
+      unit: 'Casa 03-C',
+      concept: 'Mantenimiento Mensual Agosto 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-08-10',
+      status: 'vencida',
+      createdAt: '2026-08-01 00:00:00'
+    },
+    {
+      id: 6,
+      communityId: 'com_001',
+      residentId: 'usr_004',
+      residentName: 'Sra. Valeria Ortiz Blanco',
+      unit: 'Casa 03-C',
+      concept: 'Mantenimiento Mensual Septiembre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-09-10',
+      status: 'vencida',
+      createdAt: '2026-09-01 00:00:00'
+    },
+    {
+      id: 7,
+      communityId: 'com_001',
+      residentId: 'usr_004',
+      residentName: 'Sra. Valeria Ortiz Blanco',
+      unit: 'Casa 03-C',
+      concept: 'Mantenimiento Mensual Octubre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      dueDate: '2026-10-10',
+      status: 'vencida',
+      createdAt: '2026-10-01 00:00:00'
+    },
+    {
+      id: 8,
+      communityId: 'com_001',
+      residentId: 'usr_003',
+      residentName: 'Dr. David Ruiz Calderón',
+      unit: 'Lote 07',
+      concept: 'Renta Palapa & Asador de Convivencia',
+      type: 'amenidad',
+      amount: 650.00,
+      dueDate: '2026-11-05',
+      status: 'pagada',
+      createdAt: '2026-11-01 10:00:00'
+    }
+  ];
+
+  // Seed default pagos realizados
+  const SEED_PAGOS = [
+    {
+      id: 1,
+      cuotaId: 2,
+      folio: 'REC-2026-00084',
+      residentId: 'usr_001',
+      residentName: 'Ing. Carlos Mendoza R.',
+      unit: 'Casa 42-B',
+      concept: 'Mantenimiento Mensual Octubre 2026',
+      type: 'ordinaria',
+      amount: 1850.00,
+      paymentMethod: 'transferencia',
+      reference: 'SPEI-BBVA-7829104',
+      receiptUrl: 'recibos/rec_00084.pdf',
+      paidAt: '2026-10-05 11:22:15',
+      status: 'verificado',
+      adminName: 'Ing. Carlos Morales (Admin)',
+      notes: 'Pago puntual con transferencia bancaria SPEI'
+    },
+    {
+      id: 2,
+      cuotaId: 8,
+      folio: 'REC-2026-00109',
+      residentId: 'usr_003',
+      residentName: 'Dr. David Ruiz Calderón',
+      unit: 'Lote 07',
+      concept: 'Renta Palapa & Asador de Convivencia',
+      type: 'amenidad',
+      amount: 650.00,
+      paymentMethod: 'efectivo',
+      reference: 'REC-CAJA-044',
+      receiptUrl: 'recibos/rec_00109.pdf',
+      paidAt: '2026-11-01 14:00:00',
+      status: 'verificado',
+      adminName: 'Lic. Mariana Gómez (Admin)',
+      notes: 'Liquidación en caseta de vigilancia para evento'
+    }
+  ];
+
+  function getStoredCuotas() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_CUOTAS);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY_CUOTAS, JSON.stringify(SEED_CUOTAS));
+        return SEED_CUOTAS;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return SEED_CUOTAS;
+    }
+  }
+
+  function saveStoredCuotas(cuotas) {
+    try {
+      localStorage.setItem(STORAGE_KEY_CUOTAS, JSON.stringify(cuotas));
+    } catch (e) {
+      console.error('Error saving cuotas to localStorage', e);
+    }
+  }
+
+  function getStoredPagos() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_PAGOS);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY_PAGOS, JSON.stringify(SEED_PAGOS));
+        return SEED_PAGOS;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return SEED_PAGOS;
+    }
+  }
+
+  function saveStoredPagos(pagos) {
+    try {
+      localStorage.setItem(STORAGE_KEY_PAGOS, JSON.stringify(pagos));
+    } catch (e) {
+      console.error('Error saving pagos to localStorage', e);
+    }
+  }
+
+  // Seed default enrollment codes
+  const SEED_ENROLLMENT_CODES = [
+    { id: 1, code: 'INV-WQGX1M', type: 'residente', used: 4, maxUses: 10, createdAt: '2026-06-10 14:54:04', expiresAt: '2026-12-31 23:59:59', status: 'activo' },
+    { id: 2, code: 'INV-IB8LL3', type: 'residente', used: 6, maxUses: 10, createdAt: '2026-10-01 18:21:30', expiresAt: '2026-11-30 23:59:59', status: 'activo' },
+    { id: 3, code: 'ADM-SEC2026', type: 'administrador', used: 1, maxUses: 5, createdAt: '2026-01-15 09:00:00', expiresAt: '2026-12-31 23:59:59', status: 'activo' }
+  ];
+
+  function getStoredEnrollmentCodes() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_ENROLLMENT_CODES);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY_ENROLLMENT_CODES, JSON.stringify(SEED_ENROLLMENT_CODES));
+        return SEED_ENROLLMENT_CODES;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return SEED_ENROLLMENT_CODES;
+    }
+  }
+
+  function saveStoredEnrollmentCodes(codes) {
+    try {
+      localStorage.setItem(STORAGE_KEY_ENROLLMENT_CODES, JSON.stringify(codes));
+    } catch (e) {
+      console.error('Error saving enrollment codes to localStorage', e);
+    }
+  }
 
   // Seed default communities (Multitenant)
   const SEED_COMMUNITIES = [
@@ -49,6 +270,123 @@ const HeylexAPI = (function () {
     }
   ];
 
+  // Generic Male & Female Illustrated Avatars (from the 6-avatar corporate sheet)
+  const MALE_AVATARS = [
+    'avatars/male-1.png', // Hombre con barba y saco oscuro
+    'avatars/male-2.png', // Hombre con lentes y camisa azul
+    'avatars/male-3.png'  // Hombre con lentes, saco café y corbata roja
+  ];
+
+  const FEMALE_AVATARS = [
+    'avatars/female-1.png', // Mujer con cabello oscuro y saco marino
+    'avatars/female-2.png', // Mujer con cabello castaño claro y lentes
+    'avatars/female-3.png'  // Mujer con chongo alto y blusa rosa
+  ];
+
+  // Automatic Gender Detector ('M' | 'F') from user object or full name
+  function detectGender(userOrName) {
+    if (userOrName && typeof userOrName === 'object') {
+      const explicit = String(userOrName.gender || '').toUpperCase().trim();
+      if (explicit === 'F' || explicit === 'MUJER' || explicit === 'FEMALE') return 'F';
+      if (explicit === 'M' || explicit === 'HOMBRE' || explicit === 'MALE') return 'M';
+    }
+
+    const rawName =
+      typeof userOrName === 'string'
+        ? userOrName
+        : (userOrName && userOrName.name) || '';
+
+    const normalized = rawName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\([^)]*\)/g, ' ')
+      .trim();
+
+    if (!normalized) return 'M';
+
+    const tokens = normalized
+      .split(/[\s.]+/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    // 1. Check gender-specific courtesy/academic prefixes
+    const femalePrefixes = ['sra', 'srta', 'dra', 'mtra', 'inga', 'arqa', 'licda', 'contadora', 'dona', 'profa'];
+    const malePrefixes = ['sr', 'dr', 'mtro', 'don', 'prof'];
+
+    for (const tk of tokens) {
+      if (femalePrefixes.includes(tk)) return 'F';
+      if (malePrefixes.includes(tk)) return 'M';
+    }
+
+    // 2. Strip neutral professional prefixes to inspect the given first name
+    const neutralPrefixes = new Set([
+      'ing', 'lic', 'arq', 'cp', 'c', 'p', 'c.p', 'residente', 'admin', 'administrador', 'propietario'
+    ]);
+    const nameTokens = tokens.filter((tk) => !neutralPrefixes.has(tk));
+    const firstName = nameTokens[0] || tokens[0] || '';
+
+    const femaleNames = new Set([
+      'ana', 'sofia', 'valeria', 'carmen', 'mariana', 'maria', 'laura', 'fernanda',
+      'gabriela', 'patricia', 'andrea', 'paola', 'lucia', 'elena', 'claudia', 'veronica',
+      'alejandra', 'daniela', 'adriana', 'natalia', 'beatriz', 'silvia', 'rosa', 'teresa',
+      'leticia', 'monica', 'isabel', 'guadalupe', 'rocio', 'karla', 'carla', 'diana',
+      'brenda', 'camila', 'renata', 'ximena', 'paulina', 'marisol', 'alicia', 'irene',
+      'sara', 'elizabeth', 'raquel', 'susana', 'lorena', 'norma', 'blanca', 'estela',
+      'martha', 'marta', 'julia', 'cecilia', 'victoria', 'regina', 'vanessa', 'jessica'
+    ]);
+
+    const maleNames = new Set([
+      'carlos', 'roberto', 'david', 'guillermo', 'fernando', 'alejandro', 'jorge', 'luis',
+      'miguel', 'jose', 'juan', 'pedro', 'ricardo', 'eduardo', 'francisco', 'manuel',
+      'arturo', 'sergio', 'raul', 'hector', 'daniel', 'rafael', 'javier', 'antonio',
+      'jesus', 'angel', 'marco', 'marcos', 'martin', 'cesar', 'oscar', 'ruben', 'andres',
+      'diego', 'pablo', 'gabriel', 'alberto', 'enrique', 'gerardo', 'mauricio', 'alfredo',
+      'hugo', 'armando', 'omar', 'ivan', 'edgar', 'gustavo', 'rodrigo', 'ernesto', 'julio', 'victor'
+    ]);
+
+    if (femaleNames.has(firstName)) return 'F';
+    if (maleNames.has(firstName)) return 'M';
+
+    // 3. Heuristic fallback by Spanish name ending
+    if (firstName.endsWith('a') && !['luca', 'borja', 'bautista', 'josue'].includes(firstName)) {
+      return 'F';
+    }
+    return 'M';
+  }
+
+  function getAvatarVariantIndex(userOrName, poolLength) {
+    if (userOrName && typeof userOrName === 'object' && typeof userOrName.avatarVariant === 'number') {
+      return Math.abs(userOrName.avatarVariant - 1) % poolLength;
+    }
+    const key =
+      typeof userOrName === 'string'
+        ? userOrName
+        : (userOrName && (userOrName.id || userOrName.name || userOrName.email)) || 'default';
+    let sum = 0;
+    for (let i = 0; i < key.length; i++) {
+      sum = (sum + key.charCodeAt(i)) % 997;
+    }
+    return sum % poolLength;
+  }
+
+  function getAvatarForUser(userOrName) {
+    const gender = detectGender(userOrName);
+    const pool = gender === 'F' ? FEMALE_AVATARS : MALE_AVATARS;
+    const idx = getAvatarVariantIndex(userOrName, pool.length);
+    return pool[idx];
+  }
+
+  function normalizeUserRecord(user) {
+    if (!user) return user;
+    const gender = detectGender(user);
+    return {
+      ...user,
+      gender,
+      avatar: getAvatarForUser({ ...user, gender })
+    };
+  }
+
   // Seed default mock users (Admins & Residents)
   const SEED_USERS = [
     // 1. Administrador Multitenant (gestiona Cumbres y Altavista)
@@ -57,9 +395,11 @@ const HeylexAPI = (function () {
       email: 'admin@heylex.mx',
       password: 'admin123',
       name: 'Lic. Roberto Morales (Admin)',
+      gender: 'M',
+      avatarVariant: 1,
       phone: '+52 993 311 2233',
       role: 'ADMINISTRADOR',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+      avatar: MALE_AVATARS[0],
       assignedCommunities: ['com_001', 'com_002']
     },
     // 2. Administrador Alterno (gestiona Cumbres y Parque Industrial)
@@ -68,9 +408,11 @@ const HeylexAPI = (function () {
       email: 'superadmin@heylex.mx',
       password: 'admin123',
       name: 'Arq. Mariana Estrada (Admin)',
+      gender: 'F',
+      avatarVariant: 1,
       phone: '+52 993 422 5566',
       role: 'ADMINISTRADOR',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
+      avatar: FEMALE_AVATARS[0],
       assignedCommunities: ['com_001', 'com_003']
     },
     // 3. Residente Al Corriente (Cumbres)
@@ -79,9 +421,11 @@ const HeylexAPI = (function () {
       email: 'residente@heylex.mx',
       password: 'password123',
       name: 'Ing. Carlos Mendoza R.',
+      gender: 'M',
+      avatarVariant: 1,
       phone: '+52 993 123 4567',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+      avatar: MALE_AVATARS[0],
       communityId: 'com_001',
       zone: 'Privada Los Robles',
       unit: 'Casa 42-B',
@@ -97,9 +441,11 @@ const HeylexAPI = (function () {
       email: 'suspendido@heylex.mx',
       password: 'password123',
       name: 'Lic. Ana Sofía Garza',
+      gender: 'F',
+      avatarVariant: 1,
       phone: '+52 993 987 6543',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80',
+      avatar: FEMALE_AVATARS[0],
       communityId: 'com_001',
       zone: 'Privada Los Robles',
       unit: 'Casa 18-A',
@@ -115,9 +461,11 @@ const HeylexAPI = (function () {
       email: 'david.ruiz@heylex.mx',
       password: 'password123',
       name: 'Dr. David Ruiz Calderón',
+      gender: 'M',
+      avatarVariant: 2,
       phone: '+52 993 555 1122',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80',
+      avatar: MALE_AVATARS[1],
       communityId: 'com_001',
       zone: 'Av. Las Palmas',
       unit: 'Lote 07',
@@ -133,9 +481,11 @@ const HeylexAPI = (function () {
       email: 'valeria.ortiz@heylex.mx',
       password: 'password123',
       name: 'Sra. Valeria Ortiz Blanco',
+      gender: 'F',
+      avatarVariant: 2,
       phone: '+52 993 666 3344',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80',
+      avatar: FEMALE_AVATARS[1],
       communityId: 'com_001',
       zone: 'Privada Magnolia',
       unit: 'Casa 03-C',
@@ -151,9 +501,11 @@ const HeylexAPI = (function () {
       email: 'torre.moroso@heylex.mx',
       password: 'password123',
       name: 'Lic. Guillermo Padrón',
+      gender: 'M',
+      avatarVariant: 3,
       phone: '+52 993 777 8899',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
+      avatar: MALE_AVATARS[2],
       communityId: 'com_002',
       zone: 'Torre B',
       unit: 'Depto 802',
@@ -169,9 +521,11 @@ const HeylexAPI = (function () {
       email: 'torre.activo@heylex.mx',
       password: 'password123',
       name: 'Dra. Carmen Villalobos',
+      gender: 'F',
+      avatarVariant: 3,
       phone: '+52 993 888 9900',
       role: 'RESIDENTE',
-      avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=250&q=80',
+      avatar: FEMALE_AVATARS[2],
       communityId: 'com_002',
       zone: 'Torre A',
       unit: 'Depto PH-01',
@@ -203,12 +557,12 @@ const HeylexAPI = (function () {
       if (data) {
         const parsed = JSON.parse(data);
         if (Array.isArray(parsed)) {
-          // Asegurar que las cuentas semilla (admins y residentes) siempre existan
-          const merged = [...parsed];
+          // Asegurar que las cuentas semilla siempre existan y normalizar sexo + avatar genérico
+          const merged = parsed.map((u) => normalizeUserRecord(u));
           SEED_USERS.forEach((seed) => {
             const exists = merged.find((u) => u.email.toLowerCase() === seed.email.toLowerCase());
             if (!exists) {
-              merged.push(seed);
+              merged.push(normalizeUserRecord(seed));
             }
           });
           localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(merged));
@@ -216,8 +570,9 @@ const HeylexAPI = (function () {
         }
       }
     } catch (e) {}
-    localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(SEED_USERS));
-    return SEED_USERS;
+    const normalizedSeed = SEED_USERS.map((u) => normalizeUserRecord(u));
+    localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(normalizedSeed));
+    return normalizedSeed;
   }
 
   function saveStoredResidents(residents) {
@@ -227,7 +582,12 @@ const HeylexAPI = (function () {
   function getStoredSession() {
     try {
       const data = localStorage.getItem(STORAGE_KEY_AUTH);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+      const session = JSON.parse(data);
+      if (session && session.user) {
+        session.user = normalizeUserRecord(session.user);
+      }
+      return session;
     } catch (e) {
       return null;
     }
@@ -271,6 +631,9 @@ const HeylexAPI = (function () {
   const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
   return {
+    detectGender,
+    getAvatarForUser,
+
     // 1. Iniciar Sesión (POST /api/v1/auth/login)
     async login(email, password) {
       if (!USE_MOCK) {
@@ -323,7 +686,7 @@ const HeylexAPI = (function () {
       const session = {
         token: 'mock_jwt_token_' + btoa(user.email) + '_' + Date.now(),
         refreshToken: 'mock_refresh_' + Math.random().toString(36).substr(2),
-        expiresAt: Date.now() + 86400 * 1000,
+        expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000), // Persistencia permanente (1 año / indefinido)
         user: populatedUser
       };
       saveStoredSession(session);
@@ -440,6 +803,7 @@ const HeylexAPI = (function () {
       await delay(350);
       const invites = getStoredInvites();
       const codeId = 'HLX-VISIT-' + Math.random().toString(36).substr(2, 7).toUpperCase();
+      const durationMs = data.accessType === 'WEEKEND' ? 48 * 3600 * 1000 : 24 * 3600 * 1000;
       const newInvite = {
         id: 'inv_' + Date.now(),
         visitorName: data.visitorName,
@@ -447,7 +811,7 @@ const HeylexAPI = (function () {
         entryType: data.entryType || 'VEHICULAR',
         accessType: data.accessType || 'SINGLE_USE',
         validFrom: data.validFrom || new Date().toISOString(),
-        validTo: data.validTo || new Date(Date.now() + 86400000).toISOString(),
+        validTo: data.validTo || new Date(Date.now() + durationMs).toISOString(),
         notes: data.notes || '',
         status: 'ACTIVE',
         qrCode: codeId,
@@ -486,7 +850,37 @@ const HeylexAPI = (function () {
 
     // 8. Residentes por Fraccionamiento (GET /api/v1/admin/communities/{id}/residents)
     async getCommunityResidents(communityId, filter = 'ALL', search = '') {
-      await delay(250);
+      try {
+        const idSe = (communityId === 'com_001') ? 2 : 1;
+        const queryParams = new URLSearchParams({
+          action: 'residents',
+          id_se: idSe,
+          filter: filter || 'ALL',
+          search: search || ''
+        });
+        const resp = await fetch(`backend/api.php?${queryParams.toString()}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.residents) && data.residents.length > 0) {
+            // Sincronizar en localStorage como cache local
+            const local = getStoredResidents();
+            data.residents.forEach(r => {
+              const idx = local.findIndex(x => String(x.id) === String(r.id) || x.email === r.email);
+              if (idx !== -1) {
+                local[idx] = { ...local[idx], ...r };
+              } else {
+                local.push(r);
+              }
+            });
+            saveStoredResidents(local);
+            return data.residents;
+          }
+        }
+      } catch (e) {
+        // Fallback transparente a localStorage
+      }
+
+      await delay(150);
       const allResidents = getStoredResidents().filter((u) => u.role === 'RESIDENTE');
       
       let filtered = allResidents.filter((r) => r.communityId === communityId);
@@ -540,9 +934,23 @@ const HeylexAPI = (function () {
 
     // 10. Cambiar Estatus de Licencia y Acceso (PATCH /api/v1/admin/residents/{id}/license-status)
     async updateResidentLicenseStatus(residentId, newStatus, reason = '') {
-      await delay(350);
+      try {
+        await fetch('backend/api.php?action=update_resident_status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            residentId,
+            status: newStatus,
+            reason
+          })
+        });
+      } catch (e) {
+        // Fallback local
+      }
+
+      await delay(200);
       const residents = getStoredResidents();
-      const resident = residents.find((r) => r.id === residentId);
+      const resident = residents.find((r) => String(r.id) === String(residentId));
 
       if (!resident) throw new Error('Residente no encontrado');
 
@@ -562,7 +970,7 @@ const HeylexAPI = (function () {
 
       // Si el residente tiene sesión activa, actualizarla
       const session = getStoredSession();
-      if (session && session.user.id === residentId) {
+      if (session && String(session.user.id) === String(residentId)) {
         session.user.membership.status = newStatus;
         session.user.membership.canGenerateOwnQr = newStatus === 'ACTIVE';
         session.user.membership.canInviteVisitors = newStatus === 'ACTIVE';
@@ -571,6 +979,485 @@ const HeylexAPI = (function () {
       }
 
       return { success: true, resident };
+    },
+
+    // 11. Comprobar salud y conexión de la API REST / MySQL
+    async checkBackendHealth() {
+      try {
+        const resp = await fetch('backend/api.php?action=status');
+        if (!resp.ok) throw new Error('Status endpoint failed');
+        const data = await resp.json();
+        return {
+          available: true,
+          dbConnected: Boolean(data.database_connected),
+          serverTime: data.server_time
+        };
+      } catch (e) {
+        return {
+          available: false,
+          dbConnected: false,
+          error: e.message
+        };
+      }
+    },
+
+    // 12. Bitácora de Accesos en Caseta (GET /backend/api.php?action=access_logs)
+    async getAccessLogs(limit = 100, filter = 'ALL', search = '') {
+      let logs = [];
+      try {
+        const resp = await fetch(`backend/api.php?action=access_logs&limit=${limit}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.logs)) {
+            logs = data.logs;
+          }
+        }
+      } catch (e) {
+        console.warn('API getAccessLogs fallback a demo local:', e);
+      }
+
+      if (!logs || logs.length === 0) {
+        await delay(150);
+        logs = [
+          { id: 55, type: 'usuario', name: 'Santos Jim Gon', unit: 'Casa 42-B', vehiclePlate: 'WSR-4421', direction: 'entrada', result: 'permitido', reason: 'Usuario activo', timestamp: '2026-10-31 15:42:10', guardId: 721 },
+          { id: 54, type: 'visita', name: 'Lic. Roberto Garza', unit: 'Lote 18-A', vehiclePlate: 'VHK-9920', direction: 'entrada', result: 'permitido', reason: 'QR activo', timestamp: '2026-10-31 15:20:00', guardId: 721 },
+          { id: 53, type: 'visita', name: 'Repartidor DHL Express', unit: 'Casa 10', vehiclePlate: 'TB-1102', direction: 'entrada', result: 'denegado', reason: 'QR expirado', timestamp: '2026-10-31 14:55:18', guardId: 721 },
+          { id: 52, type: 'usuario', name: 'Dra. Patricia Silva', unit: 'Casa 42-B', vehiclePlate: 'WSR-4421', direction: 'salida', result: 'permitido', reason: 'Usuario activo', timestamp: '2026-10-31 14:10:05', guardId: 721 },
+          { id: 51, type: 'visita', name: 'Ing. Fernando Tapia', unit: 'Casa 05', vehiclePlate: 'WSA-7781', direction: 'entrada', result: 'permitido', reason: 'QR activo', timestamp: '2026-10-31 13:30:45', guardId: 721 },
+          { id: 50, type: 'visita', name: 'Servicio Técnico Telmex', unit: 'Casa 14-C', vehiclePlate: 'WSR-9011', direction: 'salida', result: 'permitido', reason: 'Salida de visita', timestamp: '2026-10-31 12:45:00', guardId: 721 },
+          { id: 49, type: 'usuario', name: 'Lic. Gerardo Núñez', unit: 'Lote 03', vehiclePlate: 'WSP-2234', direction: 'entrada', result: 'denegado', reason: 'Licencia inactiva', timestamp: '2026-10-31 11:15:22', guardId: 721 }
+        ];
+      }
+
+      // Filtro inteligente
+      if (filter && filter !== 'ALL') {
+        const f = filter.toUpperCase();
+        if (f === 'PERMITTED') logs = logs.filter(l => l.result === 'permitido');
+        else if (f === 'DENIED') logs = logs.filter(l => l.result === 'denegado');
+        else if (f === 'ENTRADA') logs = logs.filter(l => l.direction === 'entrada');
+        else if (f === 'SALIDA') logs = logs.filter(l => l.direction === 'salida');
+      }
+
+      // Buscador
+      if (search && search.trim()) {
+        const q = search.toLowerCase().trim();
+        logs = logs.filter(l => 
+          (l.name && l.name.toLowerCase().includes(q)) ||
+          (l.unit && l.unit.toLowerCase().includes(q)) ||
+          (l.vehiclePlate && l.vehiclePlate.toLowerCase().includes(q)) ||
+          (l.reason && l.reason.toLowerCase().includes(q))
+        );
+      }
+
+      return logs;
+    },
+
+    // 13. Visitas Programadas Totales (GET /backend/api.php?action=all_visits)
+    async getAllVisits(filter = 'ALL', search = '') {
+      let visits = [];
+      try {
+        const resp = await fetch('backend/api.php?action=all_visits');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.visits)) {
+            visits = data.visits;
+          }
+        }
+      } catch (e) {
+        console.warn('API getAllVisits fallback a demo local:', e);
+      }
+
+      if (!visits || visits.length === 0) {
+        await delay(150);
+        const invites = getStoredInvites();
+        visits = invites.map((inv, idx) => ({
+          id: idx + 1,
+          visitorName: inv.visitorName,
+          visitorPhone: inv.visitorPhone,
+          hostName: inv.hostResidentName || 'Ing. Carlos Mendoza',
+          hostUnit: inv.hostUnit || 'Casa 42-B',
+          visitType: inv.visitType || 'unica',
+          validFrom: inv.validFrom,
+          validUntil: inv.validUntil,
+          vehiclePlate: inv.vehiclePlate || 'N/A',
+          qrCode: inv.id,
+          reason: inv.reason,
+          status: inv.status
+        }));
+      }
+
+      // Filtro inteligente
+      if (filter && filter !== 'ALL') {
+        const f = filter.toUpperCase();
+        if (f === 'ACTIVE') visits = visits.filter(v => ['activo', 'VALID', 'ACTIVE'].includes(v.status));
+        else if (f === 'USED') visits = visits.filter(v => ['usado', 'USED', 'expirado', 'EXPIRED'].includes(v.status));
+        else if (f === 'CANCELLED') visits = visits.filter(v => ['cancelado', 'CANCELLED'].includes(v.status));
+      }
+
+      // Buscador
+      if (search && search.trim()) {
+        const q = search.toLowerCase().trim();
+        visits = visits.filter(v =>
+          (v.visitorName && v.visitorName.toLowerCase().includes(q)) ||
+          (v.hostName && v.hostName.toLowerCase().includes(q)) ||
+          (v.hostUnit && v.hostUnit.toLowerCase().includes(q)) ||
+          (v.vehiclePlate && v.vehiclePlate.toLowerCase().includes(q)) ||
+          (v.reason && v.reason.toLowerCase().includes(q))
+        );
+      }
+
+      return visits;
+    },
+
+    // 14. Códigos de Enrolamiento (GET/POST /backend/api.php?action=enrollment_codes)
+    async getEnrollmentCodes(filter = 'ALL', search = '') {
+      let codes = [];
+      try {
+        const resp = await fetch('backend/api.php?action=enrollment_codes');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.codes)) {
+            codes = data.codes.map(c => ({
+              id: c.id_inv,
+              code: c.invitacion_inv,
+              type: c.tipo_inv,
+              used: parseInt(c.usosactuales_inv || 0, 10),
+              maxUses: parseInt(c.usosmaximos_inv || 10, 10),
+              createdAt: c.fechacreacion_inv,
+              expiresAt: c.fechavencimiento_inv,
+              status: c.estado_inv
+            }));
+          }
+        }
+      } catch (e) {
+        console.warn('API getEnrollmentCodes fallback a demo local:', e);
+      }
+
+      if (!codes || codes.length === 0) {
+        codes = getStoredEnrollmentCodes();
+      }
+
+      // Filtro inteligente
+      if (filter && filter !== 'ALL') {
+        const f = filter.toUpperCase();
+        if (f === 'RESIDENT') codes = codes.filter(c => c.type === 'residente');
+        else if (f === 'ADMIN') codes = codes.filter(c => c.type === 'administrador');
+        else if (f === 'ACTIVE') codes = codes.filter(c => c.status === 'activo' && c.used < c.maxUses);
+      }
+
+      // Buscador
+      if (search && search.trim()) {
+        const q = search.toLowerCase().trim();
+        codes = codes.filter(c => 
+          (c.code && c.code.toLowerCase().includes(q)) ||
+          (c.type && c.type.toLowerCase().includes(q))
+        );
+      }
+
+      return codes;
+    },
+
+    async createEnrollmentCode(payload = {}) {
+      let createdCode = null;
+      try {
+        const resp = await fetch('backend/api.php?action=enrollment_codes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok) {
+            createdCode = data;
+          }
+        }
+      } catch (e) {
+        console.warn('API createEnrollmentCode fallback a demo local:', e);
+      }
+
+      const prefix = payload.type === 'administrador' ? 'ADM-' : 'INV-';
+      const codeStr = (createdCode && createdCode.code) 
+        ? createdCode.code 
+        : prefix + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      const days = parseInt(payload.days || 30, 10);
+      const now = new Date();
+      const expDate = new Date();
+      expDate.setDate(now.getDate() + days);
+
+      const newRecord = {
+        id: (createdCode && createdCode.id) ? createdCode.id : Date.now(),
+        code: codeStr,
+        type: payload.type || 'residente',
+        used: 0,
+        maxUses: parseInt(payload.maxUses || 10, 10),
+        createdAt: now.toISOString().replace('T', ' ').substring(0, 19),
+        expiresAt: expDate.toISOString().replace('T', ' ').substring(0, 19),
+        status: 'activo'
+      };
+
+      // Siempre persistir en localStorage para garantizar disponibilidad en UI
+      const currentList = getStoredEnrollmentCodes();
+      currentList.unshift(newRecord);
+      saveStoredEnrollmentCodes(currentList);
+
+      return {
+        ok: true,
+        code: codeStr,
+        record: newRecord,
+        message: 'Código de enrolamiento generado y persistido'
+      };
+    },
+
+    // 19. Módulo Contable: Consultar Cuotas de Mantenimiento y Adeudos
+    async getCuotas(filters = {}) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (filters.communityId) queryParams.append('id_se', filters.communityId === 'com_001' ? 2 : 1);
+        if (filters.residentId) queryParams.append('id_u', filters.residentId);
+        if (filters.status && filters.status !== 'todas') queryParams.append('status', filters.status);
+
+        const resp = await fetch(`backend/api.php?action=cuotas&${queryParams.toString()}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.cuotas)) {
+            return data.cuotas;
+          }
+        }
+      } catch (e) {
+        // Fallback a localStorage
+      }
+
+      await delay(120);
+      let cuotas = getStoredCuotas();
+
+      if (filters.communityId) {
+        cuotas = cuotas.filter(c => c.communityId === filters.communityId);
+      }
+      if (filters.residentId) {
+        cuotas = cuotas.filter(c => c.residentId === filters.residentId);
+      }
+      if (filters.status && filters.status !== 'todas') {
+        cuotas = cuotas.filter(c => c.status === filters.status);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase().trim();
+        cuotas = cuotas.filter(c => 
+          (c.residentName && c.residentName.toLowerCase().includes(q)) ||
+          (c.unit && c.unit.toLowerCase().includes(q)) ||
+          (c.concept && c.concept.toLowerCase().includes(q))
+        );
+      }
+
+      return cuotas;
+    },
+
+    // 20. Módulo Contable: Consultar Historial de Pagos y Comprobantes
+    async getPagos(filters = {}) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (filters.communityId) queryParams.append('id_se', filters.communityId === 'com_001' ? 2 : 1);
+        if (filters.residentId) queryParams.append('id_u', filters.residentId);
+
+        const resp = await fetch(`backend/api.php?action=pagos&${queryParams.toString()}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok && Array.isArray(data.pagos)) {
+            return data.pagos;
+          }
+        }
+      } catch (e) {
+        // Fallback a localStorage
+      }
+
+      await delay(120);
+      let pagos = getStoredPagos();
+
+      if (filters.residentId) {
+        pagos = pagos.filter(p => p.residentId === filters.residentId);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase().trim();
+        pagos = pagos.filter(p => 
+          (p.folio && p.folio.toLowerCase().includes(q)) ||
+          (p.residentName && p.residentName.toLowerCase().includes(q)) ||
+          (p.reference && p.reference.toLowerCase().includes(q)) ||
+          (p.unit && p.unit.toLowerCase().includes(q))
+        );
+      }
+
+      return pagos;
+    },
+
+    // 21. Módulo Contable: Registrar Pago de Cuota y Reactivación Automática
+    async registerPayment(paymentData) {
+      const { cuotaId, residentId, amount, method, reference, notes, adminName } = paymentData;
+
+      let backendResult = null;
+      try {
+        const resp = await fetch('backend/api.php?action=register_payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cuotaId,
+            amount,
+            method,
+            reference,
+            notes
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok) backendResult = data;
+        }
+      } catch (e) {
+        // Continuar con persistencia local
+      }
+
+      await delay(250);
+      const cuotas = getStoredCuotas();
+      const cuotaIndex = cuotas.findIndex(c => String(c.id) === String(cuotaId));
+
+      if (cuotaIndex === -1) {
+        throw new Error('La cuota a liquidar no fue encontrada en el sistema.');
+      }
+
+      const targetCuota = cuotas[cuotaIndex];
+      targetCuota.status = 'pagada';
+      saveStoredCuotas(cuotas);
+
+      // Generar registro contable del pago
+      const folio = (backendResult && backendResult.folio)
+        ? backendResult.folio
+        : 'REC-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+
+      const now = new Date();
+      const newPayment = {
+        id: (backendResult && backendResult.paymentId) ? backendResult.paymentId : Date.now(),
+        cuotaId: targetCuota.id,
+        folio: folio,
+        residentId: targetCuota.residentId,
+        residentName: targetCuota.residentName,
+        unit: targetCuota.unit,
+        concept: targetCuota.concept,
+        type: targetCuota.type,
+        amount: parseFloat(amount || targetCuota.amount),
+        paymentMethod: method || 'transferencia',
+        reference: reference || ('SPEI-' + Math.random().toString(36).substring(2, 8).toUpperCase()),
+        receiptUrl: `recibos/${folio.toLowerCase()}.pdf`,
+        paidAt: now.toISOString().replace('T', ' ').substring(0, 19),
+        status: 'verificado',
+        adminName: adminName || 'Administración HEYLEX',
+        notes: notes || 'Liquidación de cuota registrada con éxito.'
+      };
+
+      const pagos = getStoredPagos();
+      pagos.unshift(newPayment);
+      saveStoredPagos(pagos);
+
+      // Evaluar si el residente ya liquidó todos sus adeudos vencidos
+      const residents = getStoredResidents();
+      const resident = residents.find(r => r.id === targetCuota.residentId);
+      let accessReactivated = false;
+
+      if (resident) {
+        // Calcular cuotas vencidas restantes
+        const remainingOverdue = cuotas.filter(c => c.residentId === targetCuota.residentId && c.status === 'vencida');
+        const remainingDebt = remainingOverdue.reduce((sum, c) => sum + (c.amount || 0), 0);
+
+        resident.debtAmount = remainingDebt;
+        resident.monthsDue = remainingOverdue.length;
+        resident.lastPaymentDate = now.toISOString().split('T')[0];
+
+        // Si ya no tiene adeudos pendientes o vencidos, ¡reactivar automáticamente!
+        if (remainingOverdue.length === 0) {
+          resident.licenseStatus = 'ACTIVE';
+          resident.suspensionReason = null;
+          accessReactivated = true;
+
+          // Si el usuario actual es este residente, reactivar sesión en vivo
+          const session = getStoredSession();
+          if (session && session.user && session.user.id === resident.id) {
+            session.user.membership.status = 'ACTIVE';
+            session.user.membership.canGenerateOwnQr = true;
+            session.user.membership.canInviteVisitors = true;
+            session.user.membership.suspensionReason = null;
+            saveStoredSession(session);
+          }
+        }
+
+        saveStoredResidents(residents);
+      }
+
+      return {
+        ok: true,
+        payment: newPayment,
+        accessReactivated,
+        message: accessReactivated 
+          ? `¡Pago registrado exitosamente! El residente ha saldado sus adeudos y su acceso QR fue REACTIVADO automáticamente.`
+          : `¡Pago registrado con éxito con Folio ${folio}!`
+      };
+    },
+
+    // 22. Módulo Contable: Resumen de Métricas Financieras (KPIs de Cobranza)
+    async getFinanceSummary(communityId = 'com_001') {
+      try {
+        const resp = await fetch(`backend/api.php?action=finance_metrics&id_se=${communityId === 'com_001' ? 2 : 1}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.ok) return data;
+        }
+      } catch (e) {
+        // Fallback local
+      }
+
+      const cuotas = getStoredCuotas().filter(c => !communityId || c.communityId === communityId);
+      const pagos = getStoredPagos();
+
+      const totalCollectedMonth = pagos.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const overdueCuotas = cuotas.filter(c => c.status === 'vencida');
+      const overdueDebt = overdueCuotas.reduce((sum, c) => sum + (c.amount || 0), 0);
+      const pendingCuotas = cuotas.filter(c => c.status === 'pendiente');
+      const pendingAmount = pendingCuotas.reduce((sum, c) => sum + (c.amount || 0), 0);
+
+      const totalExpected = totalCollectedMonth + overdueDebt + pendingAmount;
+      const collectionRate = totalExpected > 0 ? Math.round((totalCollectedMonth / totalExpected) * 100) : 100;
+
+      return {
+        totalCollectedMonth,
+        overdueDebt,
+        overdueCount: overdueCuotas.length,
+        pendingAmount,
+        pendingCount: pendingCuotas.length,
+        collectionRate
+      };
+    },
+
+    // 23. Módulo Contable: Generar Nueva Cuota
+    async generateCuota(cuotaData) {
+      const cuotas = getStoredCuotas();
+      const newCuota = {
+        id: Date.now(),
+        communityId: cuotaData.communityId || 'com_001',
+        residentId: cuotaData.residentId,
+        residentName: cuotaData.residentName || 'Residente',
+        unit: cuotaData.unit || 'Lote Condominal',
+        concept: cuotaData.concept || 'Cuota de Mantenimiento',
+        type: cuotaData.type || 'ordinaria',
+        amount: parseFloat(cuotaData.amount || 1850),
+        dueDate: cuotaData.dueDate || new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+        status: 'pendiente',
+        createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      };
+
+      cuotas.unshift(newCuota);
+      saveStoredCuotas(cuotas);
+
+      return {
+        ok: true,
+        cuota: newCuota,
+        message: 'Cuota generada y enviada a cuenta del residente.'
+      };
     }
   };
 })();
