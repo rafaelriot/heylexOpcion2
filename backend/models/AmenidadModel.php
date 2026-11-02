@@ -14,3 +14,4 @@ class AmenidadModel extends BaseModel {
         return $stmt->fetchAll();
     }
 }
+

@@ -49,3 +49,4 @@ class ResidentController extends BaseController {
         ], 'Estatus de acceso actualizado en la base de datos MySQL.');
     }
 }
+

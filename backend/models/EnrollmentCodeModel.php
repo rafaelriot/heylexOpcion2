@@ -41,3 +41,4 @@ class EnrollmentCodeModel extends BaseModel {
         ];
     }
 }
+

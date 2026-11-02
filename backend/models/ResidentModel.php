@@ -94,3 +94,4 @@ class ResidentModel extends BaseModel {
         return $stmt->execute([$id_eu, $qractivo, $residentId]);
     }
 }
+

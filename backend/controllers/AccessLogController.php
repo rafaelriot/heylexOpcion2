@@ -22,3 +22,4 @@ class AccessLogController extends BaseController {
         Response::success(['logs' => $logs]);
     }
 }
+

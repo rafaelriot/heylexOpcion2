@@ -21,3 +21,4 @@ class ComunicadoController extends BaseController {
         Response::success(['comunicados' => $comunicados]);
     }
 }
+

@@ -21,3 +21,4 @@ class AmenidadController extends BaseController {
         Response::success(['amenidades' => $amenidades]);
     }
 }
+

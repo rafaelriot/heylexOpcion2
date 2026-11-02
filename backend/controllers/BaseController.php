@@ -38,3 +38,4 @@ abstract class BaseController {
         return isset($_GET[$key]) ? trim((string)$_GET[$key]) : $default;
     }
 }
+

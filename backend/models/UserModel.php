@@ -49,7 +49,7 @@ class UserModel extends BaseModel {
     public function getAssignment(int $userId): array {
         $this->requireConnection();
         $stmt = $this->pdo->prepare("
-            SELECT su.id_se, s.nombre_se, s.telefono_se
+            SELECT su.id_se, s.nombre_se, s.direccion_se, s.telefono_se
             FROM serviciosusuarios su
             LEFT JOIN servicios s ON su.id_se = s.id_se
             WHERE su.id_u = ?
@@ -61,6 +61,7 @@ class UserModel extends BaseModel {
         return [
             'id_se' => (int)($row['id_se'] ?? 2),
             'communityName' => $row['nombre_se'] ?? 'Residencial Cumbres Del Ángel',
+            'communityAddress' => $row['direccion_se'] ?? 'Av. Universidad 402, Villahermosa, Tabasco',
             'phone' => $row['telefono_se'] ?? '+52 993 378 4115'
         ];
     }
@@ -68,7 +69,7 @@ class UserModel extends BaseModel {
     public function getMembershipDetails(int $userId, int $idSe, array $user): array {
         $this->requireConnection();
         // Buscar licencia activa en applicencias
-        $stmtLic = $this->pdo->prepare("SELECT * FROM applicencias WHERE id_se = ? AND activo_li = 'y' ORDER BY id_li DESC LIMIT 1");
+        $stmtLic = $this->pdo->prepare("SELECT * FROM applicencias WHERE id_se = ? AND activo_lic = 'y' ORDER BY id_lic DESC LIMIT 1");
         $stmtLic->execute([$idSe]);
         $lic = $stmtLic->fetch();
 
@@ -81,8 +82,8 @@ class UserModel extends BaseModel {
 
         return [
             'status' => $isSuspended ? 'SUSPENDED' : 'ACTIVE',
-            'licensePlan' => $lic['tipo_li'] ?? 'Plan Premium Residencial 2026',
-            'validUntil' => (!empty($lic['fechavencimiento_li']) && $lic['fechavencimiento_li'] !== '0000-00-00') ? $lic['fechavencimiento_li'] : '2026-12-31',
+            'licensePlan' => $lic['tipo_lic'] ?? 'Plan Premium Residencial 2026',
+            'validUntil' => (!empty($lic['fechavencimiento_lic']) && $lic['fechavencimiento_lic'] !== '0000-00-00') ? $lic['fechavencimiento_lic'] : '2026-12-31',
             'canGenerateOwnQr' => ($user['qractivo_u'] === 'y' && !$isSuspended),
             'canInviteVisitors' => ($user['activo_u'] === 'y' && !$isSuspended),
             'suspensionReason' => $isSuspended ? 'Acceso suspendido por mora administrativa.' : null,
@@ -90,3 +91,4 @@ class UserModel extends BaseModel {
         ];
     }
 }
+

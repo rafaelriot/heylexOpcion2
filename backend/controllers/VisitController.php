@@ -39,3 +39,4 @@ class VisitController extends BaseController {
         Response::success(['visits' => $visits]);
     }
 }
+

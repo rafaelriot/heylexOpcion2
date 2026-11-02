@@ -32,3 +32,4 @@ class CommunityController extends BaseController {
         Response::success($bank);
     }
 }
+

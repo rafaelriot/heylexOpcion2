@@ -113,3 +113,4 @@ class VisitModel extends BaseModel {
         ];
     }
 }
+

@@ -36,3 +36,4 @@ class EnrollmentController extends BaseController {
         }
     }
 }
+

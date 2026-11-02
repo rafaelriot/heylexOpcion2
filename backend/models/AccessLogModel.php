@@ -55,3 +55,4 @@ class AccessLogModel extends BaseModel {
         }, $rows);
     }
 }
+
