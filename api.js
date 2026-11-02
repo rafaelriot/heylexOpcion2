@@ -1506,6 +1506,26 @@ const HeylexAPI = (function () {
         cuota: newCuota,
         message: 'Cuota generada y enviada a cuenta del residente.'
       };
+    },
+
+    // 24. Datos Bancarios Dinámicos SPEI de la Comunidad
+    async getCommunityBankInfo(communityId = 2) {
+      try {
+        const id_se = (communityId === 'com_001' || communityId === 2) ? 2 : 1;
+        const resp = await fetch(`backend/api.php?action=community_bank_info&id_se=${id_se}`);
+        const data = await resp.json();
+        if (data && data.ok) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('Fallo al obtener datos bancarios de la API:', err);
+      }
+      return {
+        bank: 'BBVA México',
+        beneficiary: 'Fraccionamiento Cumbres A.C.',
+        clabe: '012 790 00123456789 4',
+        whatsapp: '529933784115'
+      };
     }
   };
 })();

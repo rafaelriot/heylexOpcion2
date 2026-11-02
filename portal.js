@@ -560,8 +560,8 @@
                     <span class="material-symbols-outlined text-xs text-primary">account_balance</span>
                     <span>Datos de Transferencia SPEI (Administración)</span>
                   </div>
-                  <div><strong>Banco:</strong> BBVA México | <strong>Beneficiario:</strong> Fraccionamiento Cumbres A.C.</div>
-                  <div><strong>CLABE Interbancaria:</strong> <span class="font-mono font-bold text-primary">012 790 00123456789 4</span></div>
+                  <div><strong>Banco:</strong> <span id="portal-bank-name">BBVA México</span> | <strong>Beneficiario:</strong> <span id="portal-bank-beneficiary">Fraccionamiento Cumbres A.C.</span></div>
+                  <div><strong>CLABE Interbancaria:</strong> <span id="portal-bank-clabe" class="font-mono font-bold text-primary">012 790 00123456789 4</span></div>
                   <div><strong>Concepto Obligatorio:</strong> <span id="det-spei-concept" class="font-mono text-gray-800 font-bold">Casa 42-B Cuota</span></div>
                 </div>
               </div>
@@ -571,7 +571,7 @@
                   <strong>¿Necesitas actualizar tus datos de residente o vehículo?</strong>
                   <p class="text-[11px]">Contacta con la administración del fraccionamiento para cambios en padrón.</p>
                 </div>
-                <a href="https://wa.me/529933784115?text=Hola%20HEYLEX,%20requiero%20asistencia%20con%20mi%20perfil%20residencial" target="_blank" class="px-3 py-1.5 bg-primary text-secondary-fixed rounded font-bold uppercase text-[11px] shrink-0">
+                <a id="portal-support-wa-btn" href="https://wa.me/529933784115?text=Hola%20HEYLEX,%20requiero%20asistencia%20con%20mi%20perfil%20residencial" target="_blank" class="px-3 py-1.5 bg-primary text-secondary-fixed rounded font-bold uppercase text-[11px] shrink-0">
                   Ayuda
                 </a>
               </div>
@@ -1795,7 +1795,28 @@
     if (!listEl) return;
 
     if (conceptEl) {
-      conceptEl.textContent = `${user.community.unit || 'Casa'} Cuota Mantenimiento`;
+      conceptEl.textContent = `${user.community?.unit || 'Casa'} Cuota Mantenimiento`;
+    }
+
+    // Cargar datos bancarios dinámicos desde backend/api.php
+    try {
+      if (window.HeylexAPI && window.HeylexAPI.getCommunityBankInfo) {
+        const bankData = await window.HeylexAPI.getCommunityBankInfo(user.community?.id || 2);
+        const bankNameEl = document.getElementById('portal-bank-name');
+        const bankBenEl = document.getElementById('portal-bank-beneficiary');
+        const bankClabeEl = document.getElementById('portal-bank-clabe');
+        const waBtn = document.getElementById('portal-support-wa-btn');
+
+        if (bankNameEl && bankData.bank) bankNameEl.textContent = bankData.bank;
+        if (bankBenEl && bankData.beneficiary) bankBenEl.textContent = bankData.beneficiary;
+        if (bankClabeEl && bankData.clabe) bankClabeEl.textContent = bankData.clabe;
+        if (waBtn && bankData.whatsapp) {
+          const cleanPhone = String(bankData.whatsapp).replace(/\D/g, '');
+          waBtn.href = `https://wa.me/${cleanPhone}?text=Hola%20HEYLEX,%20requiero%20asistencia%20con%20mi%20perfil%20residencial`;
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudieron obtener datos bancarios dinámicos:', err);
     }
 
     try {
