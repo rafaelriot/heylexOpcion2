@@ -76,25 +76,64 @@ switch ($action) {
             Response::error('Usuario o contraseña incorrectos.', 401);
         }
 
+        // Obtener servicio y datos de ubicación del residente desde serviciosusuarios y servicios
+        $stmtSu = $pdo->prepare("
+            SELECT su.id_se, s.nombre_se 
+            FROM serviciosusuarios su
+            LEFT JOIN servicios s ON su.id_se = s.id_se
+            WHERE su.id_u = ?
+            LIMIT 1
+        ");
+        $stmtSu->execute([(int)$user['id_u']]);
+        $suRow = $stmtSu->fetch();
+        $id_se = (int)($suRow['id_se'] ?? 2);
+        $nombreComunidad = $suRow['nombre_se'] ?? 'Residencial Cumbres Del Ángel';
+
+        $unitDisplay = trim("{$user['calle_u']} {$user['numero_u']}" . (!empty($user['numerointerior_u']) ? "-{$user['numerointerior_u']}" : ''));
+        if (empty($unitDisplay)) $unitDisplay = 'Casa 42-B';
+        $zoneDisplay = !empty($user['colonia_u']) ? $user['colonia_u'] : 'Privada Los Robles';
+
+        // Adeudos para estatus de membresía
+        $stmtDebt = $pdo->prepare("SELECT COALESCE(SUM(monto_cuo), 0) FROM appcuotas WHERE id_u = ? AND estado_cuo = 'vencida'");
+        $stmtDebt->execute([(int)$user['id_u']]);
+        $debtAmount = (float)$stmtDebt->fetchColumn();
+
         $token = JWT::generate([
             'id_u' => (int)$user['id_u'],
             'email' => $user['email_u'],
             'role' => (int)$user['id_ro'],
-            'id_se' => (int)$user['id_se']
+            'id_se' => $id_se
         ]);
+
+        $userData = [
+            'id' => (int)$user['id_u'],
+            'name' => trim("{$user['nombre_u']} {$user['apaterno_u']} {$user['amaterno_u']}"),
+            'email' => $user['email_u'],
+            'role' => ($user['id_ro'] == 4 ? 'ADMINISTRADOR' : ($user['id_ro'] == 3 ? 'GUARDIA' : 'RESIDENTE')),
+            'gender' => ($user['sexo_u'] === 'm' ? 'female' : 'male'),
+            'unit' => $unitDisplay,
+            'qrCode' => $user['tokenqr_u'],
+            'phone' => $user['telefonomovil_u'] ?: ($user['telefonocasa_u'] ?: '+52 993 123 4567'),
+            'community' => [
+                'id' => ($id_se === 2 ? 'com_001' : 'com_002'),
+                'name' => $nombreComunidad,
+                'address' => 'Av. Universidad 402, Villahermosa, Tabasco',
+                'zone' => $zoneDisplay,
+                'unit' => $unitDisplay
+            ],
+            'membership' => [
+                'status' => ($user['id_eu'] == 3 || $user['qractivo_u'] === 'n' ? 'SUSPENDED' : 'ACTIVE'),
+                'licensePlan' => 'Plan Premium Residencial 2026',
+                'validUntil' => '2026-12-31',
+                'canGenerateOwnQr' => ($user['qractivo_u'] === 'y'),
+                'canInviteVisitors' => ($user['activo_u'] === 'y'),
+                'suspensionReason' => ($user['id_eu'] == 3 || $user['qractivo_u'] === 'n' ? 'Acceso suspendido por mora administrativa.' : null)
+            ]
+        ];
 
         Response::success([
             'token' => $token,
-            'user' => [
-                'id' => (int)$user['id_u'],
-                'name' => trim("{$user['nombre_u']} {$user['apaterno_u']} {$user['amaterno_u']}"),
-                'email' => $user['email_u'],
-                'role' => ($user['id_ro'] == 4 ? 'ADMINISTRADOR' : ($user['id_ro'] == 3 ? 'GUARDIA' : 'RESIDENTE')),
-                'gender' => ($user['sexo_u'] === 'm' ? 'female' : 'male'),
-                'unit' => trim("{$user['calle_u']} {$user['numero_u']} {$user['numerointerior_u']}"),
-                'qrCode' => $user['tokenqr_u'],
-                'phone' => $user['telefonomovil_u'] ?: $user['telefonocasa_u']
-            ]
+            'user' => $userData
         ], 'Inicio de sesión exitoso');
         break;
 

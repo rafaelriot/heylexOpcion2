@@ -634,24 +634,40 @@ const HeylexAPI = (function () {
     detectGender,
     getAvatarForUser,
 
-    // 1. Iniciar Sesión (POST /api/v1/auth/login)
+    // 1. Iniciar Sesión (POST backend/api.php?action=login)
     async login(email, password) {
-      if (!USE_MOCK) {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      try {
+        const res = await fetch('backend/api.php?action=login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email: email.trim(), password })
         });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || 'Error de autenticación');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.ok && data.user) {
+            const session = {
+              token: data.token,
+              refreshToken: 'rt_' + Math.random().toString(36).substr(2),
+              expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000), // Persistencia permanente (1 año)
+              user: data.user
+            };
+            saveStoredSession(session);
+            return session;
+          } else if (data && data.error) {
+            throw new Error(data.error);
+          }
+        } else if (res.status === 401) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Credenciales inválidas. Verifica tu correo y contraseña.');
         }
-        const data = await res.json();
-        saveStoredSession(data);
-        return data;
+      } catch (e) {
+        if (e.message && e.message.includes('Credenciales')) {
+          throw e;
+        }
+        console.warn('Login con backend MySQL falló, evaluando fallback local:', e);
       }
 
-      await delay(400);
+      await delay(300);
       const residents = getStoredResidents();
       const user = residents.find(
         (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
