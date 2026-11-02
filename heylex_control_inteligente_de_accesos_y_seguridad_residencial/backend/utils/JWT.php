@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 class JWT {
-    private static string $secretKey = 'heylex_security_jwt_secret_key_2026_super_secure';
+    private static function getSecretKey(): string {
+        $envSecret = getenv('HEYLEX_JWT_SECRET');
+        if (!empty($envSecret) && is_string($envSecret)) {
+            return $envSecret;
+        }
+        return 'heylex_security_jwt_secret_key_2026_super_secure';
+    }
 
     private static function base64UrlEncode(string $data): string {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -22,7 +28,7 @@ class JWT {
         $encodedHeader = self::base64UrlEncode(json_encode($header));
         $encodedPayload = self::base64UrlEncode(json_encode($payload));
 
-        $signature = hash_hmac('sha256', "{$encodedHeader}.{$encodedPayload}", self::$secretKey, true);
+        $signature = hash_hmac('sha256', "{$encodedHeader}.{$encodedPayload}", self::getSecretKey(), true);
         $encodedSignature = self::base64UrlEncode($signature);
 
         return "{$encodedHeader}.{$encodedPayload}.{$encodedSignature}";
@@ -37,7 +43,7 @@ class JWT {
         [$encodedHeader, $encodedPayload, $encodedSignature] = $parts;
 
         $expectedSignature = self::base64UrlEncode(
-            hash_hmac('sha256', "{$encodedHeader}.{$encodedPayload}", self::$secretKey, true)
+            hash_hmac('sha256', "{$encodedHeader}.{$encodedPayload}", self::getSecretKey(), true)
         );
 
         if (!hash_equals($expectedSignature, $encodedSignature)) {
