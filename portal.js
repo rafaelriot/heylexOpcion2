@@ -342,11 +342,6 @@
             </div>
 
             <div class="flex items-center gap-2 ml-auto">
-              <!-- Demo toggle license switch button -->
-              <button id="toggle-license-btn" title="Simular cambio de estado de licencia" class="h-8 px-2.5 rounded bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 text-secondary-fixed font-label-sm text-[11px] flex items-center gap-1 transition-all">
-                <span class="material-symbols-outlined text-sm">sync_alt</span>
-                <span class="hidden sm:inline">Probar Suspensión</span>
-              </button>
               <button id="logout-btn" title="Cerrar Sesión" class="h-8 w-8 rounded bg-error-container text-error hover:bg-error hover:text-on-error flex items-center justify-center transition-all">
                 <span class="material-symbols-outlined text-base">logout</span>
               </button>
@@ -686,9 +681,11 @@
     const logoutBtn = document.getElementById('logout-btn');
     logoutBtn.addEventListener('click', handleLogout);
 
-    // Toggle license simulation button
+    // Toggle license simulation button (if exists)
     const toggleLicBtn = document.getElementById('toggle-license-btn');
-    toggleLicBtn.addEventListener('click', handleToggleLicense);
+    if (toggleLicBtn) {
+      toggleLicBtn.addEventListener('click', handleToggleLicense);
+    }
 
     // Tab buttons
     document.getElementById('tab-btn-access').addEventListener('click', () => switchTab('access'));
