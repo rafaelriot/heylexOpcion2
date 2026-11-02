@@ -579,6 +579,13 @@ const HeylexAPI = (function () {
     localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(residents));
   }
 
+  const ID_MAP = {
+    'usr_001': 1665,
+    'usr_002': 1666,
+    'usr_003': 1667,
+    'usr_004': 1668
+  };
+
   function getStoredSession() {
     try {
       const data = localStorage.getItem(STORAGE_KEY_AUTH);
@@ -586,6 +593,9 @@ const HeylexAPI = (function () {
       const session = JSON.parse(data);
       if (session && session.user) {
         session.user = normalizeUserRecord(session.user);
+        if (session.user.id && ID_MAP[session.user.id]) {
+          session.user.id = ID_MAP[session.user.id];
+        }
       }
       return session;
     } catch (e) {
@@ -1234,14 +1244,22 @@ const HeylexAPI = (function () {
       try {
         const queryParams = new URLSearchParams();
         if (filters.communityId) queryParams.append('id_se', filters.communityId === 'com_001' ? 2 : 1);
-        if (filters.residentId) queryParams.append('id_u', filters.residentId);
+        if (filters.residentId) {
+          const mappedId = ID_MAP[filters.residentId] || filters.residentId;
+          queryParams.append('id_u', mappedId);
+        }
         if (filters.status && filters.status !== 'todas') queryParams.append('status', filters.status);
 
         const resp = await fetch(`backend/api.php?action=cuotas&${queryParams.toString()}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.cuotas)) {
-            return data.cuotas;
+            let resCuotas = data.cuotas;
+            if (filters.residentId) {
+              const targetId = String(ID_MAP[filters.residentId] || filters.residentId);
+              resCuotas = resCuotas.filter(c => String(c.residentId) === targetId);
+            }
+            return resCuotas;
           }
         }
       } catch (e) {
@@ -1255,7 +1273,8 @@ const HeylexAPI = (function () {
         cuotas = cuotas.filter(c => c.communityId === filters.communityId);
       }
       if (filters.residentId) {
-        cuotas = cuotas.filter(c => c.residentId === filters.residentId);
+        const targetId = String(filters.residentId);
+        cuotas = cuotas.filter(c => String(c.residentId) === targetId || (targetId === '1665' && c.residentId === 'usr_001'));
       }
       if (filters.status && filters.status !== 'todas') {
         cuotas = cuotas.filter(c => c.status === filters.status);
@@ -1277,13 +1296,21 @@ const HeylexAPI = (function () {
       try {
         const queryParams = new URLSearchParams();
         if (filters.communityId) queryParams.append('id_se', filters.communityId === 'com_001' ? 2 : 1);
-        if (filters.residentId) queryParams.append('id_u', filters.residentId);
+        if (filters.residentId) {
+          const mappedId = ID_MAP[filters.residentId] || filters.residentId;
+          queryParams.append('id_u', mappedId);
+        }
 
         const resp = await fetch(`backend/api.php?action=pagos&${queryParams.toString()}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.pagos)) {
-            return data.pagos;
+            let resPagos = data.pagos;
+            if (filters.residentId) {
+              const targetId = String(ID_MAP[filters.residentId] || filters.residentId);
+              resPagos = resPagos.filter(p => String(p.residentId) === targetId);
+            }
+            return resPagos;
           }
         }
       } catch (e) {
@@ -1294,7 +1321,8 @@ const HeylexAPI = (function () {
       let pagos = getStoredPagos();
 
       if (filters.residentId) {
-        pagos = pagos.filter(p => p.residentId === filters.residentId);
+        const targetId = String(filters.residentId);
+        pagos = pagos.filter(p => String(p.residentId) === targetId || (targetId === '1665' && p.residentId === 'usr_001'));
       }
       if (filters.search) {
         const q = filters.search.toLowerCase().trim();

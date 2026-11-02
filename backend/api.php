@@ -481,7 +481,7 @@ switch ($action) {
 
         if ($method === 'GET') {
             $id_se = isset($_GET['id_se']) ? (int)$_GET['id_se'] : 2;
-            $id_u = isset($_GET['id_u']) ? (int)$_GET['id_u'] : 0;
+            $rawIdU = $_GET['id_u'] ?? null;
             $status = isset($_GET['status']) ? trim($_GET['status']) : '';
 
             $sql = "
@@ -501,9 +501,20 @@ switch ($action) {
             ";
             $params = [':id_se' => $id_se];
 
-            if ($id_u > 0) {
-                $sql .= " AND c.id_u = :id_u";
-                $params[':id_u'] = $id_u;
+            if ($rawIdU !== null && $rawIdU !== '') {
+                $mockMap = [
+                    'usr_001' => 1665,
+                    'usr_002' => 1666,
+                    'usr_003' => 1667,
+                    'usr_004' => 1668
+                ];
+                $id_u = isset($mockMap[$rawIdU]) ? $mockMap[$rawIdU] : (int)$rawIdU;
+                if ($id_u > 0) {
+                    $sql .= " AND c.id_u = :id_u";
+                    $params[':id_u'] = $id_u;
+                } else {
+                    $sql .= " AND 1 = 0";
+                }
             }
             if (!empty($status) && $status !== 'todas') {
                 $sql .= " AND c.estado_cuo = :status";
@@ -568,7 +579,7 @@ switch ($action) {
             Response::error('Base de datos no disponible.', 503);
         }
         $id_se = isset($_GET['id_se']) ? (int)$_GET['id_se'] : 2;
-        $id_u = isset($_GET['id_u']) ? (int)$_GET['id_u'] : 0;
+        $rawIdU = $_GET['id_u'] ?? null;
 
         $sql = "
             SELECT 
@@ -589,9 +600,20 @@ switch ($action) {
             WHERE c.id_se = :id_se
         ";
         $params = [':id_se' => $id_se];
-        if ($id_u > 0) {
-            $sql .= " AND p.id_u = :id_u";
-            $params[':id_u'] = $id_u;
+        if ($rawIdU !== null && $rawIdU !== '') {
+            $mockMap = [
+                'usr_001' => 1665,
+                'usr_002' => 1666,
+                'usr_003' => 1667,
+                'usr_004' => 1668
+            ];
+            $id_u = isset($mockMap[$rawIdU]) ? $mockMap[$rawIdU] : (int)$rawIdU;
+            if ($id_u > 0) {
+                $sql .= " AND p.id_u = :id_u";
+                $params[':id_u'] = $id_u;
+            } else {
+                $sql .= " AND 1 = 0";
+            }
         }
         $sql .= " ORDER BY p.fechapago_pag DESC, p.id_pag DESC LIMIT 100";
 
