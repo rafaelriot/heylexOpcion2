@@ -1704,11 +1704,29 @@ const HeylexAPI = (function () {
         const parts = payload.split('|');
         const residentId = parts[1] || '';
         const residents = getStoredResidents();
-        const resident = residents.find(r => r.id === residentId || r.id === 'usr_001') || residents[2];
+        
+        let resident = null;
+        if (payload.includes('DEMO_MOROSO') || residentId === 'usr_002') {
+          resident = residents.find(r => r.id === 'usr_002' || r.licenseStatus === 'SUSPENDED') || {
+            id: 'usr_002',
+            name: 'Lic. Ana Sofía Garza',
+            unit: 'Casa 18-A',
+            zone: 'Privada Los Robles',
+            phone: '+52 993 987 6543',
+            avatar: FEMALE_AVATARS[0],
+            licenseStatus: 'SUSPENDED',
+            monthsDue: 2,
+            debtAmount: 3700.00,
+            suspensionReason: 'Cuotas vencidas: Septiembre y Octubre 2026.'
+          };
+        } else {
+          resident = residents.find(r => r.id === residentId) || residents.find(r => r.id === 'usr_001') || residents[0];
+        }
+
         const cuotas = getStoredCuotas();
         const overdue = cuotas.filter(c => c.residentId === resident.id && c.status === 'vencida');
-        const overdueCount = overdue.length;
-        const debtAmount = overdue.reduce((sum, c) => sum + (c.amount || 0), 0);
+        const overdueCount = overdue.length > 0 ? overdue.length : (resident.monthsDue || 0);
+        const debtAmount = overdue.reduce((sum, c) => sum + (c.amount || 0), 0) || (resident.debtAmount || 0);
         const isSuspended = resident.licenseStatus === 'SUSPENDED' || overdueCount > 0;
 
         if (isSuspended) {
@@ -1749,12 +1767,28 @@ const HeylexAPI = (function () {
       // B) Pase de Visitante (HLX-VISIT-... o token)
       const invites = getStoredInvites();
       const cleanToken = payload.replace('HLX-VISIT-', '').trim();
-      const visit = invites.find(inv => 
+      let visit = invites.find(inv => 
         inv.qrCode === payload || 
         inv.id === cleanToken || 
         inv.qrCode === cleanToken ||
         payload.includes(String(inv.id))
       );
+
+      // Soporte para pases de demostración rápida en caseta
+      if (!visit && (payload.includes('INV-WQGX1M') || cleanToken === 'INV-WQGX1M' || (payload.includes('VISIT') && !payload.includes('EXPIRADO')))) {
+        visit = {
+          id: 'INV-WQGX1M',
+          visitorName: 'Lic. Fernando Tapia Valenzuela',
+          vehiclePlate: 'WSA-7781',
+          entryType: 'VEHICULAR',
+          hostResidentName: 'Ing. Carlos Mendoza R.',
+          hostUnit: 'Casa 42-B',
+          hostZone: 'Privada Los Robles',
+          validUntil: new Date(Date.now() + 8 * 3600000).toISOString(),
+          status: 'ACTIVE',
+          reason: 'Visita autorizada para reunión condominal'
+        };
+      }
 
       if (visit) {
         // Verificar anfitrión

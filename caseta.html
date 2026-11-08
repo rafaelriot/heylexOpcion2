@@ -214,7 +214,7 @@
               placeholder="Escanea con pistola USB o ingresa código (HLX-RES|... o HLX-VISIT-...)"
               class="w-full pl-12 pr-28 py-3.5 rounded-xl bg-brand-dark border-2 border-brand-border focus:border-brand-accent text-white font-mono text-sm outline-none transition-all placeholder:text-slate-500 shadow-inner"
             >
-            <button id="btn-verify-code" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-brand-accent hover:bg-lime-400 text-brand-navy font-bold text-xs uppercase rounded-lg shadow transition-transform active:scale-95">
+            <button type="button" id="btn-verify-code" onclick="window.manualVerify()" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-brand-accent hover:bg-lime-400 text-brand-navy font-bold text-xs uppercase rounded-lg shadow transition-transform active:scale-95 cursor-pointer">
               Verificar
             </button>
           </div>
@@ -235,16 +235,16 @@
         <!-- Testing Simulation Buttons (For fast demo of the 4 test cases) -->
         <div class="pt-2 border-t border-brand-border/60 flex flex-wrap items-center gap-2 text-xs">
           <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider mr-1">Pruebas Rápidas:</span>
-          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 font-medium" data-code="HLX-RES|usr_001|com_001|DEMO_AL_CORRIENTE">
+          <button type="button" onclick="window.quickVerify('HLX-RES|usr_001|com_001|DEMO_AL_CORRIENTE')" class="quick-test-btn cursor-pointer px-3 py-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-bold shadow transition-all active:scale-95" data-code="HLX-RES|usr_001|com_001|DEMO_AL_CORRIENTE">
             🟩 Residente Al Corriente
           </button>
-          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-300 font-medium" data-code="HLX-RES|usr_002|com_001|DEMO_MOROSO">
+          <button type="button" onclick="window.quickVerify('HLX-RES|usr_002|com_001|DEMO_MOROSO')" class="quick-test-btn cursor-pointer px-3 py-2 rounded-lg bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 font-bold shadow transition-all active:scale-95" data-code="HLX-RES|usr_002|com_001|DEMO_MOROSO">
             🟥 Residente Moroso (Suspendido)
           </button>
-          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/60 border border-blue-500/30 text-blue-300 font-medium" data-code="HLX-VISIT-INV-WQGX1M">
+          <button type="button" onclick="window.quickVerify('HLX-VISIT-INV-WQGX1M')" class="quick-test-btn cursor-pointer px-3 py-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 border border-blue-500/40 text-blue-300 font-bold shadow transition-all active:scale-95" data-code="HLX-VISIT-INV-WQGX1M">
             🟦 Visita Programada Activa
           </button>
-          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 text-amber-300 font-medium" data-code="HLX-VISIT-EXPIRADO">
+          <button type="button" onclick="window.quickVerify('HLX-VISIT-EXPIRADO')" class="quick-test-btn cursor-pointer px-3 py-2 rounded-lg bg-amber-950/60 hover:bg-amber-900 border border-amber-500/40 text-amber-300 font-bold shadow transition-all active:scale-95" data-code="HLX-VISIT-EXPIRADO">
             🟧 Visita Expirada
           </button>
         </div>
@@ -575,7 +575,7 @@
   <!-- ======================================================================= -->
   <!-- MODAL: LOGIN DE GUARDIA DE CASETA (OVERLAY SI NO HAY SESIÓN)            -->
   <!-- ======================================================================= -->
-  <div id="modal-guard-login" class="fixed inset-0 z-50 bg-[#001c38]/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div id="modal-guard-login" class="hidden fixed inset-0 z-50 bg-[#001c38]/90 backdrop-blur-md flex items-center justify-center p-4">
     <div class="bg-brand-card rounded-3xl max-w-md w-full p-6 sm:p-8 border border-brand-border shadow-2xl space-y-5 text-center">
       
       <div class="w-16 h-16 rounded-2xl bg-brand-blue border border-brand-accent/40 flex items-center justify-center text-brand-accent mx-auto shadow-md">

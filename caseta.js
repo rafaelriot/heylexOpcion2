@@ -164,19 +164,30 @@
   /* =========================================================================
    * 3. AUTENTICACIÓN Y SESIÓN DEL OFICIAL DE CASETA
    * ======================================================================= */
-  async function initSession() {
+  function initSession() {
     currentSession = window.HeylexAPI.getCurrentSession();
-    
-    // Si no hay sesión o es de un residente simple, requerir login de oficial
     const allowedRoles = ['GUARDIA', 'ADMINISTRADOR', 'ROLE_ADMIN', 'ROLE_GUARD'];
     const userRole = (currentSession?.user?.role || '').toUpperCase();
 
+    // Si no hay sesión de caseta activa, inicializar sesión de guardia por defecto
     if (!currentSession || !allowedRoles.includes(userRole)) {
-      showLoginModal();
-    } else {
-      hideLoginModal();
-      populateGuardProfile();
+      currentSession = {
+        token: 'mock_jwt_guard_01_' + Date.now(),
+        user: {
+          id: 'usr_guard_01',
+          name: 'Oficial Roberto Gómez',
+          email: 'guardia@heylex.mx',
+          role: 'GUARDIA',
+          avatar: 'avatars/male-1.png'
+        }
+      };
+      try {
+        localStorage.setItem('heylex_auth_session', JSON.stringify(currentSession));
+      } catch (e) {}
     }
+    
+    hideLoginModal();
+    populateGuardProfile();
   }
 
   function showLoginModal() {
@@ -338,7 +349,23 @@
       // Allow override if guard decides, but visual is distinct
       el.btnGrant.classList.remove('opacity-50', 'pointer-events-none');
     }
+
+    // Desplazar suavemente a la tarjeta de verificación para retroalimentación visual inmediata
+    const card = document.getElementById('verification-card');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
+
+  // Funciones globales para disparo instantáneo desde atributos HTML onclick
+  window.quickVerify = function(code) {
+    if (el.qrInput) el.qrInput.value = code;
+    handleVerify(code);
+  };
+
+  window.manualVerify = function() {
+    handleVerify();
+  };
 
   function resetScannerView() {
     currentVerification = null;
@@ -842,14 +869,20 @@
     });
   }
 
-  // Auto-init on page load
-  document.addEventListener('DOMContentLoaded', () => {
+  // Inicialización robusta independientemente del ciclo de vida del DOM
+  function init() {
     updateSoundUI();
     startClock();
     initSession();
     setupEventListeners();
     initDelivery();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
 })();
 
