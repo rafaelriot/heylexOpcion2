@@ -8,7 +8,7 @@ class AccessLogModel extends BaseModel {
     /**
      * Obtiene el historial de accesos
      */
-    public function getLogs(int $limit = 100): array {
+    public function getLogs(int $limit, int $id_se): array {
         $sql = "
             SELECT 
                 ha.id_ha,
@@ -28,10 +28,12 @@ class AccessLogModel extends BaseModel {
             FROM apphistorialaccesos ha
             LEFT JOIN usuarios u ON ha.id_ur = u.id_u
             LEFT JOIN appvisitasprogramadas vp ON ha.id_vp = vp.id_vp
+            WHERE ha.id_se = :id_se
             ORDER BY ha.fecha_ha DESC
             LIMIT :lim
         ";
         $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id_se', $id_se, PDO::PARAM_INT);
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         $rows = $stmt->fetchAll();

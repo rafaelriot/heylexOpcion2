@@ -769,48 +769,61 @@
     inviteModal.classList.add('hidden');
     profileCard.classList.remove('hidden');
 
-    // Populate user profile info
-    document.getElementById('profile-name').textContent = user.name;
-    document.getElementById('profile-role-badge').textContent = user.role;
-    document.getElementById('profile-community').textContent = `${user.community.name} - ${user.community.unit}`;
-    document.getElementById('profile-phone').textContent = `Tel: ${user.phone} | ${user.email}`;
+    // Populate user profile info with safe defaults
+    const communityName = user.community?.name || user.communityName || 'Residencial Cumbres Del Ángel';
+    const communityUnit = user.community?.unit || user.unit || 'Casa 42-B';
+    const communityAddress = user.community?.address || user.address || 'Av. Paseo de las Lomas #100, Villahermosa, Tabasco';
+    const communityZone = user.community?.zone || user.zone || 'Privada Los Robles';
+    const membership = user.membership || {
+      status: 'ACTIVE',
+      canGenerateOwnQr: true,
+      canInviteVisitors: true,
+      licensePlan: 'Plan Residencial Premium',
+      validUntil: 'Indefinida (Suscripción Activa)',
+      suspensionReason: null
+    };
+
+    document.getElementById('profile-name').textContent = user.name || 'Residente HEYLEX';
+    document.getElementById('profile-role-badge').textContent = user.role || 'RESIDENTE';
+    document.getElementById('profile-community').textContent = `${communityName} - ${communityUnit}`;
+    document.getElementById('profile-phone').textContent = `Tel: ${user.phone || '+52 993 123 4567'} | ${user.email || ''}`;
 
     const avatarImg = document.getElementById('user-avatar-img');
     const resolvedAvatar = window.HeylexAPI.getAvatarForUser
       ? window.HeylexAPI.getAvatarForUser(user)
-      : user.avatar;
+      : (user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80');
     const detectedSex = window.HeylexAPI.detectGender
       ? window.HeylexAPI.detectGender(user)
       : 'M';
     avatarImg.src = resolvedAvatar;
-    avatarImg.alt = `Avatar ${detectedSex === 'F' ? 'Mujer' : 'Hombre'} - ${user.name}`;
-    avatarImg.title = `${user.name} (${detectedSex === 'F' ? 'Perfil Femenino' : 'Perfil Masculino'})`;
+    avatarImg.alt = `Avatar ${detectedSex === 'F' ? 'Mujer' : 'Hombre'} - ${user.name || 'Residente'}`;
+    avatarImg.title = `${user.name || 'Residente'} (${detectedSex === 'F' ? 'Perfil Femenino' : 'Perfil Masculino'})`;
     avatarImg.onerror = () => {
       if (window.HeylexAPI.getAvatarForUser) {
-        avatarImg.src = window.HeylexAPI.getAvatarForUser({ name: user.name, gender: detectedSex });
+        avatarImg.src = window.HeylexAPI.getAvatarForUser({ name: user.name || 'Residente', gender: detectedSex });
       }
     };
 
     // Populate Tab 3 details
-    document.getElementById('det-community-name').textContent = user.community.name;
-    document.getElementById('det-address').textContent = user.community.address;
-    document.getElementById('det-unit').textContent = user.community.unit;
-    document.getElementById('det-zone').textContent = user.community.zone;
-    document.getElementById('det-plan-name').textContent = user.membership.licensePlan;
-    document.getElementById('det-valid-until').textContent = user.membership.validUntil;
-    document.getElementById('det-can-qr').textContent = user.membership.canGenerateOwnQr ? 'Habilitado (Activo)' : 'Bloqueado';
-    document.getElementById('det-can-qr').className = user.membership.canGenerateOwnQr ? 'font-bold text-secondary' : 'font-bold text-error';
-    document.getElementById('det-can-inv').textContent = user.membership.canInviteVisitors ? 'Habilitado (Activo)' : 'Bloqueado';
-    document.getElementById('det-can-inv').className = user.membership.canInviteVisitors ? 'font-bold text-secondary' : 'font-bold text-error';
+    document.getElementById('det-community-name').textContent = communityName;
+    document.getElementById('det-address').textContent = communityAddress;
+    document.getElementById('det-unit').textContent = communityUnit;
+    document.getElementById('det-zone').textContent = communityZone;
+    document.getElementById('det-plan-name').textContent = membership.licensePlan || 'Plan Residencial Premium';
+    document.getElementById('det-valid-until').textContent = membership.validUntil || 'Indefinida (Suscripción Activa)';
+    document.getElementById('det-can-qr').textContent = membership.canGenerateOwnQr ? 'Habilitado (Activo)' : 'Bloqueado';
+    document.getElementById('det-can-qr').className = membership.canGenerateOwnQr ? 'font-bold text-secondary' : 'font-bold text-error';
+    document.getElementById('det-can-inv').textContent = membership.canInviteVisitors ? 'Habilitado (Activo)' : 'Bloqueado';
+    document.getElementById('det-can-inv').className = membership.canInviteVisitors ? 'font-bold text-secondary' : 'font-bold text-error';
 
     // Render License Status Banner
-    renderLicenseBanner(user.membership);
+    renderLicenseBanner(membership);
 
     // Update Access QR State
-    updateAccessQrState(user.membership);
+    updateAccessQrState(membership);
 
     // Refresh Invitations list
-    refreshInvitationsList(user.membership);
+    refreshInvitationsList(membership);
 
     // Cargar Estado de Cuenta y Cuotas del Residente
     loadResidentFinanceDetails(user);
@@ -823,7 +836,7 @@
     }, 10);
 
     // Initial QR Pass render if active
-    if (user.membership.status === 'ACTIVE' && user.membership.canGenerateOwnQr) {
+    if (membership.status === 'ACTIVE' && membership.canGenerateOwnQr) {
       generateResidentQR();
     }
   }
@@ -1383,23 +1396,25 @@
       badgeText: 'RESIDENTE ACTIVO',
       passSubtitle: 'CREDENCIAL DIGITAL DE RESIDENTE • ACCESO CASETA',
       holderLabel: 'TITULAR RESIDENTE',
-      holderName: user.name,
-      destination: `${user.community.name} - ${user.community.unit}`,
-      addressOrZone: `${user.community.zone} • ${user.community.address}`,
+      holderName: user.name || 'Residente',
+      destination: `${user.community?.name || 'Residencial Cumbres Del Ángel'} - ${user.community?.unit || user.unit || 'Casa 42-B'}`,
+      addressOrZone: `${user.community?.zone || user.zone || 'Privada Los Robles'} • ${user.community?.address || 'Villahermosa, Tabasco'}`,
       entryAndPlate: 'Acceso Residente Verificado',
       validityTitle: 'Dinámico Anti-Fraude',
       validitySub: `Renovación automática (180s)`,
-      notes: user.membership.licensePlan || 'Membresía Activa',
-      authorizedBy: `${user.name} (Titular verificado)`
+      notes: user.membership?.licensePlan || 'Membresía Activa',
+      authorizedBy: `${user.name || 'Residente'} (Titular verificado)`
     };
   }
 
   function getVisitorPassCardData(inv) {
     const session = window.HeylexAPI.getCurrentSession();
     const user = session && session.user ? session.user : null;
-    const dest = user ? `${user.community.name} - ${user.community.unit}` : 'Residencial HEYLEX';
+    const dest = user
+      ? `${user.community?.name || 'Residencial Cumbres Del Ángel'} - ${user.community?.unit || user.unit || 'Casa 42-B'}`
+      : 'Residencial HEYLEX';
     const zoneAndAddress = user
-      ? `${user.community.zone} • ${user.community.address}`
+      ? `${user.community?.zone || user.zone || 'Privada Los Robles'} • ${user.community?.address || 'Control de Caseta'}`
       : 'Control de Acceso Caseta Principal';
     const entryMode = inv.entryType === 'PEATONAL' ? 'PEATONAL' : 'VEHICULAR';
     const plateStr = inv.vehiclePlate ? `Placas: ${inv.vehiclePlate}` : 'Sin placas (Peatonal)';
@@ -1418,13 +1433,13 @@
       validityTitle: formatAccessTypeLabel(inv.accessType),
       validitySub: `Vence: ${formatShortDateTime(inv.validTo)}`,
       notes: inv.notes ? `Motivo: ${inv.notes}` : 'Ingreso registrado en bitácora',
-      authorizedBy: user ? `${user.name} (${user.community.unit})` : 'Residente Autorizado'
+      authorizedBy: user ? `${user.name} (${user.community?.unit || user.unit || 'Residente'})` : 'Residente Autorizado'
     };
   }
 
   async function handleDownloadResidentQrPng() {
     const session = window.HeylexAPI.getCurrentSession();
-    if (!session || !session.user || session.user.membership.status !== 'ACTIVE') {
+    if (!session || !session.user || session.user.membership?.status !== 'ACTIVE') {
       window.HeylexUI.alert({
         title: 'Licencia Requerida',
         message: 'Tu membresía o licencia debe estar activa para descargar tu pase QR de residente.',
@@ -1449,7 +1464,7 @@
       return;
     }
 
-    if (session.user.membership.status !== 'ACTIVE') {
+    if (session.user.membership?.status !== 'ACTIVE') {
       window.HeylexUI.alert({
         title: 'Acceso Restringido',
         message: 'Tu licencia o cuota no se encuentra activa. No es posible emitir códigos de acceso.',
@@ -1459,7 +1474,7 @@
     }
 
     const user = session.user;
-    const dest = `${user.community.name} - ${user.community.unit}`;
+    const dest = `${user.community?.name || 'Residencial Cumbres Del Ángel'} - ${user.community?.unit || user.unit || 'Casa 42-B'}`;
     const code = currentResidentPass ? currentResidentPass.qrPayload : 'HLX-RES-ACTIVO';
     const cardData = getResidentPassCardData();
     const quickQrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(code)}&size=300&dark=002546&ecLevel=M`;
@@ -1467,8 +1482,8 @@
     const whatsappText =
       `🛡️ *PASE DE ACCESO DIGITAL RESIDENTE HEYLEX*\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `👤 *Residente:* ${user.name}\n` +
-      `📍 *Destino:* ${dest} (${user.community.zone})\n` +
+      `👤 *Residente:* ${user.name || 'Residente'}\n` +
+      `📍 *Destino:* ${dest} (${user.community?.zone || user.zone || 'Privada Los Robles'})\n` +
       `🔑 *Código de Entrada:* ${code}\n` +
       `⏱️ *Vigencia:* Código temporal y dinámico de caseta.\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -1580,7 +1595,9 @@
     }
 
     const session = window.HeylexAPI.getCurrentSession();
-    const dest = session ? `${session.user.community.name} - ${session.user.community.unit}` : 'Residencial';
+    const dest = session && session.user
+      ? `${session.user.community?.name || 'Residencial Cumbres Del Ángel'} - ${session.user.community?.unit || session.user.unit || 'Casa 42-B'}`
+      : 'Residencial HEYLEX';
     document.getElementById('share-destination').textContent = dest;
 
     // Render QR

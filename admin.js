@@ -794,19 +794,19 @@
             <div class="font-semibold text-gray-800">${c.concept}</div>
             <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-gray-100 text-gray-600">${c.type}</span>
           </td>
-          <td class="py-3 px-3 font-black text-gray-900">
+          <td class="py-3 px-3 font-black text-gray-900 whitespace-nowrap">
             $${Number(c.amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
           </td>
-          <td class="py-3 px-3 text-gray-600 font-mono text-[11px]">
+          <td class="py-3 px-3 text-gray-600 font-mono text-[11px] whitespace-nowrap">
             ${c.dueDate}
           </td>
-          <td class="py-3 px-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${badgeClass}">${statusLabel}</span>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${badgeClass} whitespace-nowrap">${statusLabel}</span>
           </td>
-          <td class="py-3 px-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${accessClass}">${accessLabel}</span>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${accessClass} whitespace-nowrap">${accessLabel}</span>
           </td>
-          <td class="py-3 px-3 text-right">
+          <td class="py-3 px-3 text-right whitespace-nowrap">
             ${actionHtml}
           </td>
         `;
@@ -865,8 +865,11 @@
         tr.className = 'hover:bg-gray-50/80 transition-colors';
 
         tr.innerHTML = `
-          <td class="py-3 px-3">
-            <span class="font-mono text-xs font-black text-primary bg-primary/5 px-2 py-1 rounded-md border border-primary/20">${p.folio}</span>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="inline-flex items-center gap-1 font-mono text-[11px] font-black text-primary bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/20 whitespace-nowrap tracking-wide select-all shadow-xs">
+              <span class="material-symbols-outlined text-[13px] text-primary/60 shrink-0">receipt</span>
+              <span>${p.folio}</span>
+            </span>
           </td>
           <td class="py-3 px-3">
             <div class="font-bold text-gray-900">${p.residentName}</div>
@@ -875,20 +878,20 @@
           <td class="py-3 px-3 font-medium text-gray-800">
             ${p.concept}
           </td>
-          <td class="py-3 px-3 font-black text-emerald-700">
+          <td class="py-3 px-3 font-black text-emerald-700 whitespace-nowrap">
             $${Number(p.amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
           </td>
           <td class="py-3 px-3">
             <div class="font-bold uppercase text-[11px] text-gray-700">${p.paymentMethod}</div>
             <div class="text-[10px] text-gray-500 font-mono">${p.reference || 'Sin Ref'}</div>
           </td>
-          <td class="py-3 px-3 text-gray-600 font-mono text-[11px]">
+          <td class="py-3 px-3 text-gray-600 font-mono text-[11px] whitespace-nowrap">
             ${p.paidAt}
           </td>
           <td class="py-3 px-3 text-[11px] text-gray-500">
             ${p.adminName || 'Admin'}
           </td>
-          <td class="py-3 px-3 text-right">
+          <td class="py-3 px-3 text-right whitespace-nowrap">
             <button class="view-payment-receipt-btn px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold flex items-center gap-1 transition-all ml-auto" data-folio="${p.folio}">
               <span class="material-symbols-outlined text-xs">receipt_long</span>
               <span>Comprobante</span>
@@ -1003,6 +1006,15 @@
     const refVal = document.getElementById('modal-pay-ref')?.value || '';
     const notesVal = document.getElementById('modal-pay-notes')?.value || '';
 
+    if (isNaN(amountVal) || amountVal <= 0) {
+      window.HeylexUI.alert({
+        title: 'Monto Inválido',
+        message: 'Por favor ingresa un monto numérico mayor a $0.00 MXN para registrar el pago.',
+        type: 'warning'
+      });
+      return;
+    }
+
     try {
       const resp = await window.HeylexAPI.registerPayment({
         cuotaId: selectedCuotaId,
@@ -1020,11 +1032,12 @@
 
       window.HeylexUI.alert({
         title: resp.accessReactivated ? '¡Pago Exitoso y Acceso Reactivado!' : '¡Pago Registrado Exitosamente!',
-        message: resp.message,
+        message: resp.message || 'El pago fue procesado correctamente.',
         type: 'success'
       });
 
-      showToast(`Pago procesado con Folio ${resp.payment.folio}`);
+      const folioText = (resp.payment && resp.payment.folio) ? resp.payment.folio : (resp.folio || 'REC-OK');
+      showToast(`Pago procesado con Folio ${folioText}`);
     } catch (e) {
       window.HeylexUI.alert({
         title: 'Error al Registrar Pago',

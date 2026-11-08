@@ -245,6 +245,114 @@
           closeModal({ type: selectedRole, maxUses, days });
         };
       });
+    },
+
+    // Modal corporativo multipropósito (Finanzas, Recibos, Emisión de Cuotas)
+    modal({ 
+      title = 'Diálogo HEYLEX', 
+      content = '', 
+      confirmText = 'Aceptar', 
+      cancelText = 'Cancelar', 
+      maxWidth = 'max-w-lg', 
+      onOpen = null 
+    }) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 z-[100] bg-[#002546]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-200';
+
+        let headerIcon = 'point_of_sale';
+        let badgeText = 'Módulo Administrativo HEYLEX';
+        if (title.toLowerCase().includes('recibo')) {
+          headerIcon = 'receipt_long';
+          badgeText = 'Comprobante Digital Oficial';
+        } else if (title.toLowerCase().includes('cuota')) {
+          headerIcon = 'add_circle';
+          badgeText = 'Gestión Contable Residencial';
+        }
+
+        overlay.innerHTML = `
+          <div class="bg-white rounded-2xl ${maxWidth} w-full p-6 shadow-2xl border border-gray-200 transform transition-all duration-200 scale-95 space-y-4 max-h-[90vh] flex flex-col font-['Montserrat']">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary text-secondary-fixed flex items-center justify-center font-bold shadow-sm shrink-0">
+                  <span class="material-symbols-outlined text-2xl">${headerIcon}</span>
+                </div>
+                <div>
+                  <h3 class="font-bold text-primary text-base leading-tight">${title}</h3>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">${badgeText}</span>
+                </div>
+              </div>
+              <button id="heylex-generic-modal-close" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            <div class="overflow-y-auto pr-1 flex-1 space-y-3" id="heylex-generic-modal-body">
+              ${typeof content === 'string' ? content : ''}
+            </div>
+
+            <div class="pt-3 flex items-center justify-end gap-2 border-t border-gray-100 shrink-0">
+              <button id="heylex-generic-modal-cancel" class="h-10 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs uppercase transition-all font-['Montserrat']">
+                ${cancelText}
+              </button>
+              <button id="heylex-generic-modal-confirm" class="h-10 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow transition-all flex items-center gap-1.5 shadow-emerald-600/20 font-['Montserrat']">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+                <span>${confirmText}</span>
+              </button>
+            </div>
+          </div>
+        `;
+
+        if (content instanceof HTMLElement) {
+          overlay.querySelector('#heylex-generic-modal-body').appendChild(content);
+        }
+
+        document.body.appendChild(overlay);
+
+        setTimeout(() => {
+          overlay.querySelector('.transform')?.classList.remove('scale-95');
+          overlay.querySelector('.transform')?.classList.add('scale-100');
+        }, 10);
+
+        const card = overlay.querySelector('.transform');
+
+        const closeModal = (confirmed) => {
+          if (card) {
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+          }
+          overlay.classList.add('opacity-0');
+          // Resolvemos antes de desmontar para que código síncrono del llamador pueda leer el formulario
+          resolve(confirmed);
+          setTimeout(() => {
+            overlay.remove();
+          }, 150);
+        };
+
+        const closeBtn = overlay.querySelector('#heylex-generic-modal-close');
+        const cancelBtn = overlay.querySelector('#heylex-generic-modal-cancel');
+        const confirmBtn = overlay.querySelector('#heylex-generic-modal-confirm');
+
+        if (closeBtn) closeBtn.onclick = () => closeModal(false);
+        if (cancelBtn) cancelBtn.onclick = () => closeModal(false);
+        if (confirmBtn) confirmBtn.onclick = () => closeModal(true);
+
+        const onKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            document.removeEventListener('keydown', onKeyDown);
+            closeModal(false);
+          }
+        };
+        document.addEventListener('keydown', onKeyDown);
+
+        if (typeof onOpen === 'function') {
+          try {
+            onOpen(overlay);
+          } catch (err) {
+            console.error('[HeylexUI.modal onOpen error]:', err);
+          }
+        }
+      });
     }
   };
 

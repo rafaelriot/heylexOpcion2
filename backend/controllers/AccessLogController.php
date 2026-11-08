@@ -17,8 +17,9 @@ class AccessLogController extends BaseController {
      */
     public function list(): void {
         $this->requireMethod('GET');
-        $limit = $this->getQueryInt('limit', 100);
-        $logs = $this->accessLogModel->getLogs($limit);
+        $limit = max(1, min(500, $this->getQueryInt('limit', 100)));
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+        $logs = $this->accessLogModel->getLogs($limit, $id_se);
         Response::success(['logs' => $logs]);
     }
 }

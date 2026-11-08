@@ -21,7 +21,7 @@ class AuthController extends BaseController {
      */
     public function status(): void {
         Response::success([
-            'database_connected' => true,
+            'database_connected' => $this->userModel->isConnected(),
             'server_time' => date('Y-m-d H:i:s'),
             'app' => 'HEYLEX Security Platform API',
             'version' => '2.0.0-OOP',
@@ -99,6 +99,7 @@ class AuthController extends BaseController {
 
         Response::success([
             'token' => $token,
+            'expiresIn' => JWT::defaultTtl(),
             'user' => $userData
         ], 'Inicio de sesión exitoso');
     }

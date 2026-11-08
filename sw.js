@@ -1,5 +1,5 @@
 // HEYLEX PWA Service Worker (sw.js)
-const CACHE_NAME = 'heylex-pwa-v1';
+const CACHE_NAME = 'heylex-pwa-v5';
 
 const STATIC_ASSETS = [
   './',

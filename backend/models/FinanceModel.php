@@ -137,6 +137,16 @@ class FinanceModel extends BaseModel {
     }
 
     /**
+     * Obtiene una cuota por su ID (o null si no existe)
+     */
+    public function getCuotaById(int $id_cuo): ?array {
+        $stmt = $this->pdo->prepare("SELECT * FROM appcuotas WHERE id_cuo = ? LIMIT 1");
+        $stmt->execute([$id_cuo]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /**
      * Registra un pago verificando cuota y reactivando accesos si no quedan adeudos
      */
     public function registerPayment(int $id_cuo, float $monto, string $metodo, string $referencia, string $notas, int $id_ua): array {
@@ -190,6 +200,7 @@ class FinanceModel extends BaseModel {
                 'paymentId' => $id_pag,
                 'folio' => $folio,
                 'cuotaId' => $id_cuo,
+                'residentId' => $id_u,
                 'amount' => $monto,
                 'overdueRemaining' => $overdueCount,
                 'accessReactivated' => $accessReactivated

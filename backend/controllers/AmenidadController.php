@@ -17,7 +17,7 @@ class AmenidadController extends BaseController {
      */
     public function list(): void {
         $this->requireMethod('GET');
-        $amenidades = $this->amenidadModel->getActive();
+        $amenidades = $this->amenidadModel->getActive($this->resolveCommunityId($this->requestedCommunityId()));
         Response::success(['amenidades' => $amenidades]);
     }
 }

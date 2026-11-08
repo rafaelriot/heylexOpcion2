@@ -1,3 +1,10 @@
 cloudflared.exe
 *.log
-
+backend/config/env.local.php
+.env
+seteinc_app_desarrollo.sql
+heylex_database_full.sql
+cleanup_orphan_tables.sql
+*.bak
+templates/code.html.bak
+templates/code_test.html

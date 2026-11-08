@@ -17,7 +17,7 @@ class ResidentController extends BaseController {
      */
     public function list(): void {
         $this->requireMethod('GET');
-        $id_se = $this->getQueryInt('id_se', 2);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
         $filter = $this->getQueryString('filter', 'ALL');
         $search = $this->getQueryString('search', '');
 
@@ -36,6 +36,13 @@ class ResidentController extends BaseController {
 
         if ($residentId <= 0 || !in_array($status, ['ACTIVE', 'SUSPENDED'], true)) {
             Response::error('Parámetros residentId o status inválidos.', 400);
+        }
+
+        // El residente debe pertenecer a alguna comunidad que administre el usuario autenticado
+        $residentServices = (new UserModel())->getServiceIds($residentId);
+        $allowed = array_filter($residentServices, fn(int $id) => $this->canAccessCommunity($id));
+        if (!$allowed) {
+            Response::error('El residente no pertenece a una comunidad bajo su administración.', 403);
         }
 
         $ok = $this->residentModel->updateStatus($residentId, $status);

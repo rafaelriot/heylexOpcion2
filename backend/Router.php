@@ -16,7 +16,15 @@ require_once __DIR__ . '/controllers/ComunicadoController.php';
 require_once __DIR__ . '/controllers/AmenidadController.php';
 
 class Router {
-    /** @var array<string, array{string, string}> */
+    /** Marca de ruta pública (no requiere JWT) */
+    private const PUBLIC = null;
+    /** Cualquier usuario autenticado */
+    private const ANY = [];
+
+    /**
+     * action => [Controller, método, roles permitidos | PUBLIC | ANY]
+     * @var array<string, array{0: string, 1: string, 2: ?array}>
+     */
     private array $routes = [];
 
     public function __construct() {
@@ -24,30 +32,36 @@ class Router {
     }
 
     private function registerRoutes(): void {
+        $admin    = [BaseController::ROLE_ADMIN];
+        $guard    = BaseController::ROLE_GUARD;
+        $resident = BaseController::ROLE_RESIDENT;
+
         $this->routes = [
-            'status'                 => [AuthController::class, 'status'],
-            'login'                  => [AuthController::class, 'login'],
-            
-            'residents'              => [ResidentController::class, 'list'],
-            'update_resident_status' => [ResidentController::class, 'updateStatus'],
-            
-            'access_logs'            => [AccessLogController::class, 'list'],
-            
-            'invitations'            => [VisitController::class, 'invitations'],
-            'all_visits'             => [VisitController::class, 'allVisits'],
-            
-            'enrollment_codes'       => [EnrollmentController::class, 'codes'],
-            
-            'cuotas'                 => [FinanceController::class, 'cuotas'],
-            'pagos'                  => [FinanceController::class, 'pagos'],
-            'register_payment'       => [FinanceController::class, 'registerPayment'],
-            'finance_metrics'        => [FinanceController::class, 'metrics'],
-            
-            'community_info'         => [CommunityController::class, 'info'],
-            'community_bank_info'    => [CommunityController::class, 'bankInfo'],
-            
-            'comunicados'            => [ComunicadoController::class, 'list'],
-            'amenidades'             => [AmenidadController::class, 'list']
+            'status'                 => [AuthController::class, 'status', self::PUBLIC],
+            'login'                  => [AuthController::class, 'login', self::PUBLIC],
+
+            'residents'              => [ResidentController::class, 'list', $admin],
+            'update_resident_status' => [ResidentController::class, 'updateStatus', $admin],
+
+            'access_logs'            => [AccessLogController::class, 'list', [BaseController::ROLE_ADMIN, $guard]],
+
+            // GET: residente (propias) / guardia / admin; POST: residente / admin (validado en el controlador)
+            'invitations'            => [VisitController::class, 'invitations', [BaseController::ROLE_ADMIN, $guard, $resident]],
+            'all_visits'             => [VisitController::class, 'allVisits', [BaseController::ROLE_ADMIN, $guard]],
+
+            'enrollment_codes'       => [EnrollmentController::class, 'codes', $admin],
+
+            // GET: residente (propias) / admin; POST: solo admin (validado en el controlador)
+            'cuotas'                 => [FinanceController::class, 'cuotas', [BaseController::ROLE_ADMIN, $resident]],
+            'pagos'                  => [FinanceController::class, 'pagos', [BaseController::ROLE_ADMIN, $resident]],
+            'register_payment'       => [FinanceController::class, 'registerPayment', $admin],
+            'finance_metrics'        => [FinanceController::class, 'metrics', $admin],
+
+            'community_info'         => [CommunityController::class, 'info', self::ANY],
+            'community_bank_info'    => [CommunityController::class, 'bankInfo', self::ANY],
+
+            'comunicados'            => [ComunicadoController::class, 'list', self::ANY],
+            'amenidades'             => [AmenidadController::class, 'list', self::ANY]
         ];
     }
 
@@ -63,17 +77,21 @@ class Router {
         $action = trim((string)($_GET['action'] ?? ''));
 
         if ($action === '' || !isset($this->routes[$action])) {
-            Response::error("Acción '{$action}' no reconocida en la API.", 404);
+            Response::error('Acción no reconocida en la API.', 404);
         }
 
-        [$controllerClass, $method] = $this->routes[$action];
+        [$controllerClass, $method, $roles] = $this->routes[$action];
 
         try {
             $controller = new $controllerClass();
+            if ($roles !== self::PUBLIC) {
+                $controller->authenticate($roles);
+            }
             $controller->$method();
         } catch (Throwable $e) {
-            Response::error('Error interno del servidor: ' . $e->getMessage(), 500);
+            // El detalle se registra en el log del servidor, nunca se expone al cliente
+            error_log(sprintf('[HEYLEX API] action=%s %s: %s in %s:%d', $action, get_class($e), $e->getMessage(), $e->getFile(), $e->getLine()));
+            Response::error('Error interno del servidor.', 500);
         }
     }
 }
-

@@ -17,7 +17,7 @@ class ComunicadoController extends BaseController {
      */
     public function list(): void {
         $this->requireMethod('GET');
-        $comunicados = $this->comunicadoModel->getActive();
+        $comunicados = $this->comunicadoModel->getActive($this->resolveCommunityId($this->requestedCommunityId()));
         Response::success(['comunicados' => $comunicados]);
     }
 }

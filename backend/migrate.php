@@ -4,16 +4,28 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/database.php';
 
-$isCli = (php_sapi_name() === 'cli');
+// Las migraciones solo pueden ejecutarse desde la línea de comandos:
+//   C:\xampp\php\php.exe backend\migrate.php
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Forbidden: ejecute las migraciones por CLI (php backend/migrate.php).\n";
+    exit;
+}
+
 $results = [];
 $error = null;
 
 try {
-    // 1. Conectar a MySQL (incluso si la BD seteinc_app aún no está creada)
-    $host = '127.0.0.1';
-    $port = '3306';
-    $user = 'root';
-    $pass = '';
+    // 1. Conectar a MySQL (incluso si la BD aún no está creada). Credenciales desde entorno / env.local.php
+    $host = getenv('DB_HOST') ?: '127.0.0.1';
+    $port = getenv('DB_PORT') ?: '3306';
+    $user = getenv('DB_USER') ?: 'root';
+    $pass = getenv('DB_PASS') !== false ? (string)getenv('DB_PASS') : '';
+    $dbName = getenv('DB_NAME') ?: 'seteinc_app';
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $dbName)) {
+        throw new Exception('DB_NAME inválido.');
+    }
 
     $pdoRoot = new PDO("mysql:host={$host};port={$port};charset=utf8mb4", $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -21,10 +33,10 @@ try {
     ]);
 
     // Crear BD si no existe
-    $pdoRoot->exec("CREATE DATABASE IF NOT EXISTS `seteinc_app` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+    $pdoRoot->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
 
-    // Conectar a seteinc_app
-    $pdo = new PDO("mysql:host={$host};port={$port};dbname=seteinc_app;charset=utf8mb4", $user, $pass, [
+    // Conectar a la BD
+    $pdo = new PDO("mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4", $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
@@ -103,101 +115,6 @@ try {
     ];
 }
 
-// Salida CLI o HTML
-if ($isCli || isset($_GET['format']) && $_GET['format'] === 'json') {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
-    exit;
-}
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>HEYLEX - Sincronizador de Base de Datos</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-8 flex items-center justify-center font-sans">
-  <div class="max-w-xl w-full bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-6 space-y-6">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl">
-        HLX
-      </div>
-      <div>
-        <h1 class="text-xl font-black text-white">Sincronizador de Datos MySQL</h1>
-        <p class="text-xs text-slate-400">Plataforma Residencial HEYLEX &bull; Base: seteinc_app</p>
-      </div>
-    </div>
-
-    <?php if ($results['ok']): ?>
-      <div class="p-4 bg-emerald-950/60 border border-emerald-500/40 rounded-xl space-y-2">
-        <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-          <span>&#10003;</span>
-          <span><?php echo htmlspecialchars($results['message']); ?></span>
-        </div>
-        <p class="text-xs text-emerald-300/80">Se ejecutaron <?php echo $results['executed_queries']; ?> sentencias SQL de migración y consolidación.</p>
-      </div>
-
-      <div class="space-y-3">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Registros Sincronizados en MySQL:</h2>
-        <div class="divide-y divide-slate-700 text-xs">
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Padrón de Residentes (usuarios id_ro=5):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['usuarios']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Vínculos Fraccionamiento (serviciosusuarios id_se=2):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['serviciosusuarios']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Bitácora de Caseta (apphistorialaccesos):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['apphistorialaccesos']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Visitas Programadas (appvisitasprogramadas):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['appvisitasprogramadas']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Códigos de Enrolamiento (appinvitaciones):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['appinvitaciones']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Cuotas Condominales (appcuotas):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['appcuotas']; ?></span>
-          </div>
-          <div class="py-2 flex justify-between">
-            <span class="text-slate-300">Pagos y Recibos Validados (apppagos):</span>
-            <span class="font-mono font-bold text-emerald-400"><?php echo $results['counts']['apppagos']; ?></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="pt-4 flex gap-3">
-        <a href="../admin.html" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase text-center transition-all shadow-lg shadow-emerald-600/30">
-          Ir al Panel de Administración
-        </a>
-        <a href="migrate.php" class="py-2.5 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs uppercase text-center transition-all">
-          Reejecutar
-        </a>
-      </div>
-
-    <?php else: ?>
-      <div class="p-4 bg-rose-950/60 border border-rose-500/40 rounded-xl space-y-2">
-        <div class="text-rose-400 font-bold text-sm">Error de Conexión o Migración</div>
-        <p class="text-xs text-rose-300/80"><?php echo htmlspecialchars($results['error']); ?></p>
-        <p class="text-[11px] text-slate-400 pt-2">
-          <strong>Sugerencia:</strong> Asegúrate de que el módulo MySQL esté iniciado en el panel de control de XAMPP (puerto 3306).
-        </p>
-      </div>
-
-      <div class="pt-2">
-        <a href="migrate.php" class="block w-full py-2.5 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs uppercase text-center transition-all">
-          Reintentar Conexión
-        </a>
-      </div>
-    <?php endif; ?>
-
-  </div>
-</body>
-</html>
-
+// Salida CLI (JSON)
+echo json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
+exit($results['ok'] ? 0 : 1);

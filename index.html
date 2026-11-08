@@ -1884,7 +1884,15 @@ function handleLeadSubmit(event) {
   // Validate Mexican phone (at least 10 digits without spaces)
   const digits = phone.replace(/\s/g, '');
   if (digits.length < 10) {
-    alert("Por favor ingresa un número de teléfono válido a 10 dígitos (ej. 993 123 4567).");
+    if (window.HeylexUI && typeof window.HeylexUI.alert === 'function') {
+      window.HeylexUI.alert({
+        title: 'Número Inválido',
+        message: 'Por favor ingresa un número de teléfono válido a 10 dígitos (ej. 993 123 4567).',
+        type: 'warning'
+      });
+    } else {
+      console.warn("Por favor ingresa un número de teléfono válido a 10 dígitos (ej. 993 123 4567).");
+    }
     return;
   }
 

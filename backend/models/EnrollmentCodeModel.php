@@ -8,8 +8,9 @@ class EnrollmentCodeModel extends BaseModel {
     /**
      * Obtiene códigos de enrolamiento generados
      */
-    public function getCodes(int $limit = 50): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM appinvitaciones ORDER BY id_inv DESC LIMIT :lim");
+    public function getCodes(int $limit, int $id_se): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM appinvitaciones WHERE id_se = :id_se ORDER BY id_inv DESC LIMIT :lim");
+        $stmt->bindValue(':id_se', $id_se, PDO::PARAM_INT);
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();

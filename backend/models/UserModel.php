@@ -25,15 +25,14 @@ class UserModel extends BaseModel {
         $storedHash = (string)($user['pasword_u'] ?? '');
         $isBcrypt = password_verify($password, $storedHash);
         $isLegacyMd5 = (md5($password) === $storedHash);
-        $isMasterTest = ($storedHash === md5('password123') && $password === '123456');
 
-        $isValid = $isBcrypt || $isLegacyMd5 || $isMasterTest;
+        $isValid = $isBcrypt || $isLegacyMd5;
         if (!$isValid) {
             return false;
         }
 
         // Migración transparente a Bcrypt (Coste 12)
-        if (!$isBcrypt && ($isLegacyMd5 || $isMasterTest)) {
+        if (!$isBcrypt && $isLegacyMd5) {
             try {
                 $newHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
                 $stmt = $this->pdo->prepare("UPDATE usuarios SET pasword_u = ? WHERE id_u = ?");
@@ -44,6 +43,17 @@ class UserModel extends BaseModel {
         }
 
         return true;
+    }
+
+    /**
+     * IDs de servicio (comunidades) a los que está asignado un usuario
+     * @return int[]
+     */
+    public function getServiceIds(int $userId): array {
+        $this->requireConnection();
+        $stmt = $this->pdo->prepare("SELECT DISTINCT id_se FROM serviciosusuarios WHERE id_u = ?");
+        $stmt->execute([$userId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     public function getAssignment(int $userId): array {

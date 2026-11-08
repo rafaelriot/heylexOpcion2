@@ -8,9 +8,9 @@ class AmenidadModel extends BaseModel {
     /**
      * Obtiene recursos o amenidades activas
      */
-    public function getActive(): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM apprecursos WHERE activo_rec = 'y' ORDER BY nombre_rec ASC");
-        $stmt->execute();
+    public function getActive(int $id_se): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM apprecursos WHERE activo_rec = 'y' AND id_se = ? ORDER BY nombre_rec ASC");
+        $stmt->execute([$id_se]);
         return $stmt->fetchAll();
     }
 }

@@ -8,8 +8,17 @@ class VisitModel extends BaseModel {
     /**
      * Obtiene visitas programadas creadas por residentes
      */
-    public function getScheduledVisits(int $limit = 50): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM appvisitasprogramadas ORDER BY id_vp DESC LIMIT :lim");
+    public function getScheduledVisits(int $limit, int $id_se, ?int $id_u = null): array {
+        $sql = "SELECT * FROM appvisitasprogramadas WHERE id_se = :id_se";
+        if ($id_u !== null) {
+            $sql .= " AND id_u = :id_u";
+        }
+        $sql .= " ORDER BY id_vp DESC LIMIT :lim";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id_se', $id_se, PDO::PARAM_INT);
+        if ($id_u !== null) {
+            $stmt->bindValue(':id_u', $id_u, PDO::PARAM_INT);
+        }
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         $rows = $stmt->fetchAll();
@@ -34,7 +43,7 @@ class VisitModel extends BaseModel {
     /**
      * Obtiene todas las visitas vinculadas con el anfitrión/residente
      */
-    public function getAllVisits(int $limit = 100): array {
+    public function getAllVisits(int $limit, int $id_se): array {
         $sql = "
             SELECT 
                 vp.*,
@@ -45,10 +54,12 @@ class VisitModel extends BaseModel {
                 u.numero_u
             FROM appvisitasprogramadas vp
             LEFT JOIN usuarios u ON vp.id_u = u.id_u
+            WHERE vp.id_se = :id_se
             ORDER BY vp.id_vp DESC
             LIMIT :lim
         ";
         $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id_se', $id_se, PDO::PARAM_INT);
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         $rows = $stmt->fetchAll();
@@ -89,8 +100,11 @@ class VisitModel extends BaseModel {
                 ?, 'y', ?, ?, 'activo'
             )
         ");
-        $id_se = (int)($data['communityId'] ?? 2);
-        $id_u = (int)($data['residentId'] ?? 1665);
+        $id_se = (int)($data['communityId'] ?? 0);
+        $id_u = (int)($data['residentId'] ?? 0);
+        if ($id_se <= 0 || $id_u <= 0) {
+            throw new InvalidArgumentException('Comunidad o residente inválidos para la invitación.');
+        }
         $stmt->execute([
             $id_se,
             $id_u,

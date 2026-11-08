@@ -19,11 +19,29 @@ class VisitController extends BaseController {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
         if ($method === 'GET') {
-            $invitations = $this->visitModel->getScheduledVisits(50);
+            $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+            // Un residente solo ve las invitaciones que él creó
+            $id_u = $this->isResident() ? $this->authUserId() : null;
+            $invitations = $this->visitModel->getScheduledVisits(50, $id_se, $id_u);
             Response::success(['invitations' => $invitations]);
         } elseif ($method === 'POST') {
+            if (!$this->isResident() && !$this->isAdmin()) {
+                Response::error('No tiene permisos para crear invitaciones.', 403);
+            }
             $input = $this->getJsonInput();
-            $res = $this->visitModel->createVisit($input);
+            if ($this->isResident()) {
+                // El residente siempre invita a su nombre y en su comunidad
+                $input['residentId'] = $this->authUserId();
+                $input['communityId'] = $this->resolveCommunityId();
+            } else {
+                $input['communityId'] = $this->resolveCommunityId(isset($input['communityId']) ? (int)$input['communityId'] : null);
+                $input['residentId'] = (int)($input['residentId'] ?? 0) ?: $this->authUserId();
+            }
+            try {
+                $res = $this->visitModel->createVisit($input);
+            } catch (InvalidArgumentException $e) {
+                Response::error($e->getMessage(), 400);
+            }
             Response::success($res, 'Invitación creada exitosamente');
         } else {
             Response::error('Method Not Allowed', 405);
@@ -35,8 +53,8 @@ class VisitController extends BaseController {
      */
     public function allVisits(): void {
         $this->requireMethod('GET');
-        $visits = $this->visitModel->getAllVisits(100);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+        $visits = $this->visitModel->getAllVisits(100, $id_se);
         Response::success(['visits' => $visits]);
     }
 }
-

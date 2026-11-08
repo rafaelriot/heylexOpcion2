@@ -380,8 +380,25 @@ const HeylexAPI = (function () {
   function normalizeUserRecord(user) {
     if (!user) return user;
     const gender = detectGender(user);
+    const community = user.community || {
+      id: user.communityId === 'com_002' ? 1 : 2,
+      name: user.communityName || (user.communityId === 'com_002' ? 'Fraccionamiento Residencial Modelo' : 'Residencial Cumbres Del Ángel'),
+      address: user.address || 'Av. Paseo de las Lomas #100, Villahermosa, Tabasco',
+      zone: user.zone || 'Privada Los Robles',
+      unit: user.unit || 'Casa 42-B'
+    };
+    const membership = user.membership || {
+      status: user.licenseStatus || 'ACTIVE',
+      canGenerateOwnQr: (user.licenseStatus || 'ACTIVE') === 'ACTIVE',
+      canInviteVisitors: (user.licenseStatus || 'ACTIVE') === 'ACTIVE',
+      licensePlan: 'Plan Residencial Premium',
+      validUntil: 'Indefinida (Suscripción Activa)',
+      suspensionReason: user.suspensionReason || null
+    };
     return {
       ...user,
+      community,
+      membership,
       gender,
       avatar: getAvatarForUser({ ...user, gender })
     };
@@ -591,6 +608,11 @@ const HeylexAPI = (function () {
       const data = localStorage.getItem(STORAGE_KEY_AUTH);
       if (!data) return null;
       const session = JSON.parse(data);
+      // Sesión vencida: se descarta (el backend también rechazaría el token)
+      if (session && session.expiresAt && Date.now() > Number(session.expiresAt)) {
+        localStorage.removeItem(STORAGE_KEY_AUTH);
+        return null;
+      }
       if (session && session.user) {
         session.user = normalizeUserRecord(session.user);
         if (session.user.id && ID_MAP[session.user.id]) {
@@ -640,6 +662,57 @@ const HeylexAPI = (function () {
 
   const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  /** ¿El token fue emitido por el backend (JWT real) y no es de demostración? */
+  function isRealToken(token) {
+    return typeof token === 'string' && !token.startsWith('mock_') && token.split('.').length === 3;
+  }
+
+  let sessionExpiredHandled = false;
+
+  /**
+   * fetch autenticado contra el backend: agrega `Authorization: Bearer <JWT>`.
+   * Si el servidor responde 401 con un token real, la sesión se invalida y se vuelve al login.
+   */
+  async function apiFetch(url, options = {}) {
+    const session = getStoredSession();
+    const headers = { ...(options.headers || {}) };
+    const sentToken = Boolean(session && isRealToken(session.token));
+    if (sentToken) {
+      headers['Authorization'] = 'Bearer ' + session.token;
+    }
+
+    const resp = await fetch(url, { ...options, headers });
+
+    if (resp.status === 401 && sentToken && !sessionExpiredHandled) {
+      sessionExpiredHandled = true;
+      saveStoredSession(null);
+      window.dispatchEvent(new CustomEvent('heylex:session-expired'));
+      const goToLogin = () => window.location.reload();
+      if (window.HeylexUI && typeof window.HeylexUI.alert === 'function') {
+        window.HeylexUI.alert({
+          title: 'Sesión expirada',
+          message: 'Tu sesión ha expirado o no es válida. Inicia sesión nuevamente.',
+          type: 'error'
+        }).then(goToLogin);
+      } else {
+        goToLogin();
+      }
+    }
+    return resp;
+  }
+
+  /**
+   * Los datos de demostración (localStorage) solo se usan si USE_MOCK === true.
+   * Con USE_MOCK = false los errores del backend se propagan en lugar de ocultarse.
+   */
+  function assertMockAllowed(context, cause) {
+    if (!USE_MOCK) {
+      const err = new Error(`No se pudo completar "${context}" con el servidor. Intenta de nuevo más tarde.`);
+      err.cause = cause;
+      throw err;
+    }
+  }
+
   return {
     detectGender,
     getAvatarForUser,
@@ -657,8 +730,9 @@ const HeylexAPI = (function () {
           if (data && data.ok && data.user) {
             const session = {
               token: data.token,
-              refreshToken: 'rt_' + Math.random().toString(36).substr(2),
-              expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000), // Persistencia permanente (1 año)
+              refreshToken: null,
+              // Vigencia definida por el servidor (HEYLEX_JWT_TTL, 30 días por defecto)
+              expiresAt: Date.now() + (Number(data.expiresIn) > 0 ? Number(data.expiresIn) * 1000 : 30 * 24 * 60 * 60 * 1000),
               user: data.user
             };
             saveStoredSession(session);
@@ -668,15 +742,23 @@ const HeylexAPI = (function () {
           }
         } else if (res.status === 401) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Credenciales inválidas. Verifica tu correo y contraseña.');
+          const authErr = new Error(err.error || 'Credenciales inválidas. Verifica tu correo y contraseña.');
+          authErr.code = 'INVALID_CREDENTIALS';
+          throw authErr;
         }
       } catch (e) {
         if (e.message && e.message.includes('Credenciales')) {
           throw e;
         }
+        // Sin modo demo, un 401 del servidor es definitivo
+        if (!USE_MOCK && e.code === 'INVALID_CREDENTIALS') {
+          throw e;
+        }
         console.warn('Login con backend MySQL falló, evaluando fallback local:', e);
+        assertMockAllowed('inicio de sesión', e);
       }
 
+      assertMockAllowed('inicio de sesión');
       await delay(300);
       const residents = getStoredResidents();
       const user = residents.find(
@@ -712,7 +794,7 @@ const HeylexAPI = (function () {
       const session = {
         token: 'mock_jwt_token_' + btoa(user.email) + '_' + Date.now(),
         refreshToken: 'mock_refresh_' + Math.random().toString(36).substr(2),
-        expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000), // Persistencia permanente (1 año / indefinido)
+        expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // Sesión de demostración (30 días)
         user: populatedUser
       };
       saveStoredSession(session);
@@ -780,7 +862,7 @@ const HeylexAPI = (function () {
       // Re-validate against fresh DB
       const residents = getStoredResidents();
       const freshUser = residents.find((r) => r.id === session.user.id);
-      const status = freshUser ? freshUser.licenseStatus : session.user.membership.status;
+      const status = freshUser ? freshUser.licenseStatus : (session.user.membership?.status || 'ACTIVE');
 
       if (status !== 'ACTIVE') {
         const reason = (freshUser && freshUser.suspensionReason) || 'Tu membresía o licencia no cuenta con privilegios activos de acceso.';
@@ -818,7 +900,7 @@ const HeylexAPI = (function () {
 
       const residents = getStoredResidents();
       const freshUser = residents.find((r) => r.id === session.user.id);
-      const status = freshUser ? freshUser.licenseStatus : session.user.membership.status;
+      const status = freshUser ? freshUser.licenseStatus : (session.user.membership?.status || 'ACTIVE');
 
       if (status !== 'ACTIVE') {
         const err = new Error('No cuentas con privilegios para invitar visitantes.');
@@ -884,10 +966,10 @@ const HeylexAPI = (function () {
           filter: filter || 'ALL',
           search: search || ''
         });
-        const resp = await fetch(`backend/api.php?${queryParams.toString()}`);
+        const resp = await apiFetch(`backend/api.php?${queryParams.toString()}`);
         if (resp.ok) {
           const data = await resp.json();
-          if (data.ok && Array.isArray(data.residents) && data.residents.length > 0) {
+          if (data.ok && Array.isArray(data.residents) && (data.residents.length > 0 || !USE_MOCK)) {
             // Sincronizar en localStorage como cache local
             const local = getStoredResidents();
             data.residents.forEach(r => {
@@ -903,9 +985,10 @@ const HeylexAPI = (function () {
           }
         }
       } catch (e) {
-        // Fallback transparente a localStorage
+        // Fallback transparente a localStorage (solo en modo demo)
       }
 
+      assertMockAllowed('consulta de residentes');
       await delay(150);
       const allResidents = getStoredResidents().filter((u) => u.role === 'RESIDENTE');
       
@@ -965,7 +1048,7 @@ const HeylexAPI = (function () {
     // 10. Cambiar Estatus de Licencia y Acceso (PATCH /api/v1/admin/residents/{id}/license-status)
     async updateResidentLicenseStatus(residentId, newStatus, reason = '') {
       try {
-        await fetch('backend/api.php?action=update_resident_status', {
+        await apiFetch('backend/api.php?action=update_resident_status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1014,7 +1097,7 @@ const HeylexAPI = (function () {
     // 11. Comprobar salud y conexión de la API REST / MySQL
     async checkBackendHealth() {
       try {
-        const resp = await fetch('backend/api.php?action=status');
+        const resp = await apiFetch('backend/api.php?action=status');
         if (!resp.ok) throw new Error('Status endpoint failed');
         const data = await resp.json();
         return {
@@ -1035,7 +1118,7 @@ const HeylexAPI = (function () {
     async getAccessLogs(limit = 100, filter = 'ALL', search = '') {
       let logs = [];
       try {
-        const resp = await fetch(`backend/api.php?action=access_logs&limit=${limit}`);
+        const resp = await apiFetch(`backend/api.php?action=access_logs&limit=${limit}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.logs)) {
@@ -1086,7 +1169,7 @@ const HeylexAPI = (function () {
     async getAllVisits(filter = 'ALL', search = '') {
       let visits = [];
       try {
-        const resp = await fetch('backend/api.php?action=all_visits');
+        const resp = await apiFetch('backend/api.php?action=all_visits');
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.visits)) {
@@ -1143,7 +1226,7 @@ const HeylexAPI = (function () {
     async getEnrollmentCodes(filter = 'ALL', search = '') {
       let codes = [];
       try {
-        const resp = await fetch('backend/api.php?action=enrollment_codes');
+        const resp = await apiFetch('backend/api.php?action=enrollment_codes');
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.codes)) {
@@ -1190,7 +1273,7 @@ const HeylexAPI = (function () {
     async createEnrollmentCode(payload = {}) {
       let createdCode = null;
       try {
-        const resp = await fetch('backend/api.php?action=enrollment_codes', {
+        const resp = await apiFetch('backend/api.php?action=enrollment_codes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -1250,7 +1333,7 @@ const HeylexAPI = (function () {
         }
         if (filters.status && filters.status !== 'todas') queryParams.append('status', filters.status);
 
-        const resp = await fetch(`backend/api.php?action=cuotas&${queryParams.toString()}`);
+        const resp = await apiFetch(`backend/api.php?action=cuotas&${queryParams.toString()}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.cuotas)) {
@@ -1301,7 +1384,7 @@ const HeylexAPI = (function () {
           queryParams.append('id_u', mappedId);
         }
 
-        const resp = await fetch(`backend/api.php?action=pagos&${queryParams.toString()}`);
+        const resp = await apiFetch(`backend/api.php?action=pagos&${queryParams.toString()}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok && Array.isArray(data.pagos)) {
@@ -1343,7 +1426,7 @@ const HeylexAPI = (function () {
 
       let backendResult = null;
       try {
-        const resp = await fetch('backend/api.php?action=register_payment', {
+        const resp = await apiFetch('backend/api.php?action=register_payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1366,13 +1449,25 @@ const HeylexAPI = (function () {
       const cuotas = getStoredCuotas();
       const cuotaIndex = cuotas.findIndex(c => String(c.id) === String(cuotaId));
 
-      if (cuotaIndex === -1) {
+      if (cuotaIndex === -1 && !backendResult) {
         throw new Error('La cuota a liquidar no fue encontrada en el sistema.');
       }
 
-      const targetCuota = cuotas[cuotaIndex];
-      targetCuota.status = 'pagada';
-      saveStoredCuotas(cuotas);
+      const targetCuota = cuotaIndex !== -1 ? cuotas[cuotaIndex] : {
+        id: cuotaId,
+        residentId: (backendResult && backendResult.residentId) || 'usr_001',
+        residentName: (backendResult && backendResult.residentName) || 'Residente HEYLEX',
+        unit: 'Lote Residencial',
+        concept: 'Cuota Condominal',
+        type: 'ordinaria',
+        amount: parseFloat(amount || 1850.00),
+        status: 'pagada'
+      };
+
+      if (cuotaIndex !== -1) {
+        targetCuota.status = 'pagada';
+        saveStoredCuotas(cuotas);
+      }
 
       // Generar registro contable del pago
       const folio = (backendResult && backendResult.folio)
@@ -1406,7 +1501,9 @@ const HeylexAPI = (function () {
       // Evaluar si el residente ya liquidó todos sus adeudos vencidos
       const residents = getStoredResidents();
       const resident = residents.find(r => r.id === targetCuota.residentId);
-      let accessReactivated = false;
+      let accessReactivated = (backendResult && typeof backendResult.accessReactivated === 'boolean')
+        ? backendResult.accessReactivated
+        : false;
 
       if (resident) {
         // Calcular cuotas vencidas restantes
@@ -1417,8 +1514,8 @@ const HeylexAPI = (function () {
         resident.monthsDue = remainingOverdue.length;
         resident.lastPaymentDate = now.toISOString().split('T')[0];
 
-        // Si ya no tiene adeudos pendientes o vencidos, ¡reactivar automáticamente!
-        if (remainingOverdue.length === 0) {
+        // Si ya no tiene adeudos pendientes o vencidos (o el backend ya lo reactivó), reactivar localmente
+        if (accessReactivated || remainingOverdue.length === 0) {
           resident.licenseStatus = 'ACTIVE';
           resident.suspensionReason = null;
           accessReactivated = true;
@@ -1450,7 +1547,7 @@ const HeylexAPI = (function () {
     // 22. Módulo Contable: Resumen de Métricas Financieras (KPIs de Cobranza)
     async getFinanceSummary(communityId = 'com_001') {
       try {
-        const resp = await fetch(`backend/api.php?action=finance_metrics&id_se=${communityId === 'com_001' ? 2 : 1}`);
+        const resp = await apiFetch(`backend/api.php?action=finance_metrics&id_se=${communityId === 'com_001' ? 2 : 1}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.ok) return data;
@@ -1512,7 +1609,7 @@ const HeylexAPI = (function () {
     async getCommunityBankInfo(communityId = 2) {
       try {
         const id_se = (communityId === 'com_001' || communityId === 2) ? 2 : 1;
-        const resp = await fetch(`backend/api.php?action=community_bank_info&id_se=${id_se}`);
+        const resp = await apiFetch(`backend/api.php?action=community_bank_info&id_se=${id_se}`);
         const data = await resp.json();
         if (data && data.ok) {
           return data;

@@ -2,6 +2,8 @@
 // backend/config/database.php
 declare(strict_types=1);
 
+require_once __DIR__ . '/env.php';
+
 class Database {
     private static ?PDO $instance = null;
 

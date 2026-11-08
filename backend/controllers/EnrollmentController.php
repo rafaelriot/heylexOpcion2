@@ -19,15 +19,20 @@ class EnrollmentController extends BaseController {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
         if ($method === 'GET') {
-            $codes = $this->enrollmentModel->getCodes(50);
+            $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+            $codes = $this->enrollmentModel->getCodes(50, $id_se);
             Response::success(['codes' => $codes]);
         } elseif ($method === 'POST') {
             $input = $this->getJsonInput();
-            $id_se = (int)($input['communityId'] ?? 2);
-            $id_uc = (int)($input['adminId'] ?? 1652);
+            $id_se = $this->resolveCommunityId(isset($input['communityId']) ? (int)$input['communityId'] : null);
+            // El creador es siempre el administrador autenticado
+            $id_uc = $this->authUserId();
             $type = (string)($input['type'] ?? 'residente');
-            $maxUses = (int)($input['maxUses'] ?? 10);
-            $days = (int)($input['days'] ?? 30);
+            if (!in_array($type, ['residente', 'administrador'], true)) {
+                Response::error('Tipo de código inválido.', 400);
+            }
+            $maxUses = max(1, min(500, (int)($input['maxUses'] ?? 10)));
+            $days = max(1, min(365, (int)($input['days'] ?? 30)));
 
             $res = $this->enrollmentModel->createCode($id_se, $id_uc, $type, $maxUses, $days);
             Response::success($res, 'Código de enrolamiento generado');
@@ -36,4 +41,3 @@ class EnrollmentController extends BaseController {
         }
     }
 }
-

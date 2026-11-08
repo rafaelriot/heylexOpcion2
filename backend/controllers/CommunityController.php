@@ -17,7 +17,7 @@ class CommunityController extends BaseController {
      */
     public function info(): void {
         $this->requireMethod('GET');
-        $id_se = $this->getQueryInt('id_se', 2);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
         $data = $this->communityModel->getCommunity($id_se);
         Response::success($data);
     }
@@ -27,7 +27,7 @@ class CommunityController extends BaseController {
      */
     public function bankInfo(): void {
         $this->requireMethod('GET');
-        $id_se = $this->getQueryInt('id_se', 2);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
         $bank = $this->communityModel->getBankInfo($id_se);
         Response::success($bank);
     }

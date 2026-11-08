@@ -2,13 +2,24 @@
 // backend/utils/JWT.php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../config/env.php';
+
 class JWT {
+    /** Vigencia por defecto: 30 días */
+    private const DEFAULT_TTL = 2592000;
+
     private static function getSecretKey(): string {
         $envSecret = getenv('HEYLEX_JWT_SECRET');
-        if (!empty($envSecret) && is_string($envSecret)) {
+        if (is_string($envSecret) && strlen($envSecret) >= 32) {
             return $envSecret;
         }
-        return 'heylex_security_jwt_secret_key_2026_super_secure';
+        // Sin secreto configurado no se emiten ni aceptan tokens (evita secretos hardcodeados)
+        throw new RuntimeException('HEYLEX_JWT_SECRET no configurado (mínimo 32 caracteres). Ver backend/config/env.example.php');
+    }
+
+    public static function defaultTtl(): int {
+        $ttl = (int)(getenv('HEYLEX_JWT_TTL') ?: 0);
+        return $ttl > 0 ? $ttl : self::DEFAULT_TTL;
     }
 
     private static function base64UrlEncode(string $data): string {
@@ -19,11 +30,11 @@ class JWT {
         return base64_decode(strtr($data, '-_', '+/'));
     }
 
-    public static function generate(array $payload, int $expirySeconds = 31536000): string {
+    public static function generate(array $payload, ?int $expirySeconds = null): string {
         $header = ['typ' => 'JWT', 'alg' => 'HS256'];
         $now = time();
         $payload['iat'] = $now;
-        $payload['exp'] = $now + $expirySeconds;
+        $payload['exp'] = $now + ($expirySeconds ?? self::defaultTtl());
 
         $encodedHeader = self::base64UrlEncode(json_encode($header));
         $encodedPayload = self::base64UrlEncode(json_encode($payload));
@@ -41,6 +52,12 @@ class JWT {
         }
 
         [$encodedHeader, $encodedPayload, $encodedSignature] = $parts;
+
+        // Solo se acepta HS256 (evita ataques de tipo alg=none / confusión de algoritmo)
+        $header = json_decode(self::base64UrlDecode($encodedHeader), true);
+        if (!is_array($header) || ($header['alg'] ?? '') !== 'HS256') {
+            return null;
+        }
 
         $expectedSignature = self::base64UrlEncode(
             hash_hmac('sha256', "{$encodedHeader}.{$encodedPayload}", self::getSecretKey(), true)

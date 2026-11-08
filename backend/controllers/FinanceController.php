@@ -13,17 +13,15 @@ class FinanceController extends BaseController {
     }
 
     /**
-     * Resuelve IDs alfanuméricos a enteros (compatibilidad)
+     * Determina el residente a consultar: un residente solo puede ver sus propios datos;
+     * un administrador puede filtrar por cualquier residente (o ninguno = todos).
      */
-    private function resolveResidentId(?string $raw): ?int {
-        if ($raw === null || $raw === '') return null;
-        $mockMap = [
-            'usr_001' => 1665,
-            'usr_002' => 1666,
-            'usr_003' => 1667,
-            'usr_004' => 1668
-        ];
-        return isset($mockMap[$raw]) ? $mockMap[$raw] : ((int)$raw > 0 ? (int)$raw : null);
+    private function resolveResidentFilter(): ?int {
+        if ($this->isResident()) {
+            return $this->authUserId();
+        }
+        $raw = $_GET['id_u'] ?? null;
+        return ($raw !== null && (int)$raw > 0) ? (int)$raw : null;
     }
 
     /**
@@ -33,16 +31,18 @@ class FinanceController extends BaseController {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
         if ($method === 'GET') {
-            $id_se = $this->getQueryInt('id_se', 2);
-            $rawIdU = $_GET['id_u'] ?? null;
-            $id_u = $this->resolveResidentId($rawIdU !== null ? (string)$rawIdU : null);
+            $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+            $id_u = $this->resolveResidentFilter();
             $status = $this->getQueryString('status', '');
 
             $cuotas = $this->financeModel->getCuotas($id_se, $id_u, $status);
             Response::success(['cuotas' => $cuotas]);
         } elseif ($method === 'POST') {
+            if (!$this->isAdmin()) {
+                Response::error('Solo un administrador puede generar cuotas.', 403);
+            }
             $input = $this->getJsonInput();
-            $id_se = (int)($input['communityId'] ?? 2);
+            $id_se = $this->resolveCommunityId(isset($input['communityId']) ? (int)$input['communityId'] : null);
             $id_u = (int)($input['residentId'] ?? 0);
             $concept = trim((string)($input['concept'] ?? 'Cuota de Mantenimiento'));
             $type = trim((string)($input['type'] ?? 'ordinaria'));
@@ -51,6 +51,13 @@ class FinanceController extends BaseController {
 
             if ($id_u <= 0 || $amount <= 0) {
                 Response::error('Datos de cuota incompletos o monto inválido.', 400);
+            }
+            $date = DateTime::createFromFormat('Y-m-d', $dueDate);
+            if (!$date || $date->format('Y-m-d') !== $dueDate) {
+                Response::error('Fecha de vencimiento inválida (formato AAAA-MM-DD).', 400);
+            }
+            if (!in_array($id_se, (new UserModel())->getServiceIds($id_u), true)) {
+                Response::error('El residente no pertenece a la comunidad indicada.', 400);
             }
 
             $id_cuo = $this->financeModel->createCuota($id_se, $id_u, $concept, $type, $amount, $dueDate);
@@ -70,9 +77,8 @@ class FinanceController extends BaseController {
      */
     public function pagos(): void {
         $this->requireMethod('GET');
-        $id_se = $this->getQueryInt('id_se', 2);
-        $rawIdU = $_GET['id_u'] ?? null;
-        $id_u = $this->resolveResidentId($rawIdU !== null ? (string)$rawIdU : null);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
+        $id_u = $this->resolveResidentFilter();
 
         $pagos = $this->financeModel->getPagos($id_se, $id_u);
         Response::success(['pagos' => $pagos]);
@@ -90,10 +96,22 @@ class FinanceController extends BaseController {
         $metodo = trim((string)($input['method'] ?? 'transferencia'));
         $referencia = trim((string)($input['reference'] ?? 'SPEI-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6))));
         $notas = trim((string)($input['notes'] ?? 'Pago verificado por administración'));
-        $id_ua = (int)($input['adminId'] ?? 1652);
+        // El administrador que registra es siempre el usuario autenticado (no se acepta del cliente)
+        $id_ua = $this->authUserId();
 
         if ($id_cuo <= 0 || $monto <= 0) {
             Response::error('Parámetros de cuota o monto inválidos.', 400);
+        }
+
+        $cuota = $this->financeModel->getCuotaById($id_cuo);
+        if (!$cuota) {
+            Response::error('La cuota especificada no existe.', 404);
+        }
+        if (!$this->canAccessCommunity((int)$cuota['id_se'])) {
+            Response::error('La cuota no pertenece a una comunidad bajo su administración.', 403);
+        }
+        if ($cuota['estado_cuo'] === 'pagada') {
+            Response::error('La cuota ya se encuentra pagada.', 409);
         }
 
         try {
@@ -101,8 +119,6 @@ class FinanceController extends BaseController {
             Response::success($result, 'Pago registrado correctamente.');
         } catch (InvalidArgumentException $e) {
             Response::error($e->getMessage(), 404);
-        } catch (Exception $e) {
-            Response::error('Error al procesar el pago: ' . $e->getMessage(), 500);
         }
     }
 
@@ -111,9 +127,8 @@ class FinanceController extends BaseController {
      */
     public function metrics(): void {
         $this->requireMethod('GET');
-        $id_se = $this->getQueryInt('id_se', 2);
+        $id_se = $this->resolveCommunityId($this->requestedCommunityId());
         $metrics = $this->financeModel->getMetrics($id_se);
         Response::success($metrics);
     }
 }
-
