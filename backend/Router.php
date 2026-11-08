@@ -14,6 +14,7 @@ require_once __DIR__ . '/controllers/FinanceController.php';
 require_once __DIR__ . '/controllers/CommunityController.php';
 require_once __DIR__ . '/controllers/ComunicadoController.php';
 require_once __DIR__ . '/controllers/AmenidadController.php';
+require_once __DIR__ . '/controllers/GuardController.php';
 
 class Router {
     /** Marca de ruta pública (no requiere JWT) */
@@ -61,7 +62,13 @@ class Router {
             'community_bank_info'    => [CommunityController::class, 'bankInfo', self::ANY],
 
             'comunicados'            => [ComunicadoController::class, 'list', self::ANY],
-            'amenidades'             => [AmenidadController::class, 'list', self::ANY]
+            'amenidades'             => [AmenidadController::class, 'list', self::ANY],
+
+            // Caseta y control de acceso operativo (Guardia y Admin)
+            'verify_pass'            => [GuardController::class, 'verifyPass', [BaseController::ROLE_ADMIN, $guard]],
+            'record_access'          => [GuardController::class, 'recordAccess', [BaseController::ROLE_ADMIN, $guard]],
+            'register_delivery'      => [GuardController::class, 'registerDelivery', [BaseController::ROLE_ADMIN, $guard]],
+            'guard_visits'           => [GuardController::class, 'todayVisits', [BaseController::ROLE_ADMIN, $guard]]
         ];
     }
 

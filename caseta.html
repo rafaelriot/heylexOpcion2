@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HEYLEX | Caseta de Control de Acceso y Seguridad</title>
+
+  <!-- PWA & Mobile App Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#030914">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HEYLEX Caseta">
+
+  <!-- Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: "#001c38",
+              blue: "#002546",
+              accent: "#d4f034",
+              dark: "#030914",
+              card: "#0b1626",
+              cardHover: "#112038",
+              border: "#192c47",
+              glow: "#10b981",
+              denied: "#ef4444"
+            }
+          },
+          fontFamily: {
+            sans: ["Montserrat", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #030914;
+      color: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-mono-numbers {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Glow animations */
+    @keyframes pulse-emerald {
+      0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.35); }
+      50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.7); }
+    }
+    @keyframes pulse-rose {
+      0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
+      50% { box-shadow: 0 0 45px rgba(239, 68, 68, 0.75); }
+    }
+    .status-glow-permitted {
+      animation: pulse-emerald 2s infinite ease-in-out;
+    }
+    .status-glow-denied {
+      animation: pulse-rose 1.5s infinite ease-in-out;
+    }
+    /* Reticle scanning animation */
+    @keyframes scanline {
+      0% { top: 0%; }
+      50% { top: 90%; }
+      100% { top: 0%; }
+    }
+    .scan-reticle-line {
+      position: absolute;
+      left: 5%;
+      width: 90%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #d4f034, transparent);
+      box-shadow: 0 0 12px #d4f034;
+      animation: scanline 2.2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-brand-dark text-slate-100 select-none">
+
+  <!-- TOP HEADER / CONTROL STATUS BAR -->
+  <header class="bg-brand-navy border-b border-brand-border sticky top-0 z-40 px-4 lg:px-6 py-2.5 shadow-xl">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Logo & Caseta ID -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-2 group" title="Ir al Portal Principal">
+          <div class="w-10 h-10 rounded-xl bg-brand-blue border border-brand-accent/40 flex items-center justify-center text-brand-accent shadow-md group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 32 32" fill="none">
+              <path d="M8 6V26M24 6V26M8 16H24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="16" cy="16" r="2.5" fill="#d4f034"></circle>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xl font-black tracking-tight text-white leading-none">HEYLEX</span>
+              <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-brand-accent text-brand-navy font-mono">CASETA</span>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium">Control de Acceso Operativo</span>
+          </div>
+        </a>
+
+        <!-- Community Selector -->
+        <div class="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-brand-border">
+          <span class="material-symbols-outlined text-slate-400 text-lg">domain</span>
+          <select id="select-community" class="bg-brand-card border border-brand-border text-white text-xs rounded-lg px-2.5 py-1.5 font-bold outline-none focus:border-brand-accent cursor-pointer">
+            <option value="com_001">Residencial Cumbres Del Ángel</option>
+            <option value="com_002">Torre Altavista Condominios</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Digital Clock & Status Indicator -->
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 text-xs font-bold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>SISTEMA ACTIVO</span>
+        </div>
+
+        <!-- Audio FX Toggle -->
+        <button id="btn-toggle-sound" class="p-2 rounded-lg bg-brand-card hover:bg-brand-cardHover border border-brand-border text-slate-300 hover:text-brand-accent transition-colors" title="Activar/Silenciar Efectos de Sonido">
+          <span id="sound-icon" class="material-symbols-outlined text-lg">volume_up</span>
+        </button>
+
+        <!-- Digital Clock -->
+        <div class="text-right">
+          <div id="live-clock" class="text-base sm:text-lg font-bold font-mono-numbers text-white leading-none tracking-wider">00:00:00</div>
+          <div id="live-date" class="text-[10px] uppercase font-bold text-slate-400 mt-0.5">--- --, 2026</div>
+        </div>
+
+        <!-- Guard Identity & Logout -->
+        <div class="flex items-center gap-2.5 pl-3 border-l border-brand-border">
+          <img id="guard-avatar" src="avatars/male-1.png" alt="Guardia" class="w-9 h-9 rounded-full border-2 border-brand-accent/50 object-cover bg-brand-blue">
+          <div class="hidden xl:block text-left">
+            <div id="guard-name" class="text-xs font-bold text-white leading-tight">Oficial Roberto Gómez</div>
+            <div class="text-[10px] text-brand-accent font-semibold">Caseta Principal</div>
+          </div>
+          <button id="btn-guard-logout" class="p-2 rounded-lg bg-brand-card hover:bg-red-950/40 border border-brand-border hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors ml-1" title="Cerrar Turno de Guardia">
+            <span class="material-symbols-outlined text-lg">logout</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-brand-dark border-b border-brand-border px-4 sticky top-[61px] z-30">
+    <div class="max-w-7xl mx-auto flex gap-1 overflow-x-auto py-2">
+      <button class="tab-btn active px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all bg-brand-accent text-brand-navy shadow-md" data-tab="scanner">
+        <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+        <span>Escanear y Acceso Rápido</span>
+      </button>
+
+      <button class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-slate-400 hover:text-white hover:bg-brand-card" data-tab="visits">
+        <span class="material-symbols-outlined text-base">calendar_month</span>
+        <span>Visitas del Día</span>
+      </button>
+
+      <button class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-slate-400 hover:text-white hover:bg-brand-card" data-tab="delivery">
+        <span class="material-symbols-outlined text-base">local_shipping</span>
+        <span>Paquetería y Proveedores</span>
+      </button>
+
+      <button class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-slate-400 hover:text-white hover:bg-brand-card" data-tab="logs">
+        <span class="material-symbols-outlined text-base">history</span>
+        <span>Bitácora en Vivo</span>
+      </button>
+
+      <div class="ml-auto hidden md:flex items-center gap-2">
+        <a href="admin.html" class="px-3 py-2 rounded-xl text-xs font-bold uppercase text-slate-400 hover:text-white hover:bg-brand-card flex items-center gap-1.5 border border-brand-border" title="Ir al Panel de Administración">
+          <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+          <span>Panel Admin</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN OPERATIONAL CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 space-y-6">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: ESCÁNER & VERIFICACIÓN EN VIVO                                 -->
+    <!-- ===================================================================== -->
+    <div id="view-scanner" class="tab-view space-y-5">
+
+      <!-- Scanner Input Box & Hardware Listener -->
+      <div class="bg-brand-card rounded-2xl p-4 lg:p-5 border border-brand-border shadow-lg space-y-3">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div class="flex-1 relative">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-accent text-2xl">barcode_scanner</span>
+            <input 
+              id="qr-manual-input" 
+              type="text" 
+              autocomplete="off" 
+              autofocus
+              placeholder="Escanea con pistola USB o ingresa código (HLX-RES|... o HLX-VISIT-...)"
+              class="w-full pl-12 pr-28 py-3.5 rounded-xl bg-brand-dark border-2 border-brand-border focus:border-brand-accent text-white font-mono text-sm outline-none transition-all placeholder:text-slate-500 shadow-inner"
+            >
+            <button id="btn-verify-code" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-brand-accent hover:bg-lime-400 text-brand-navy font-bold text-xs uppercase rounded-lg shadow transition-transform active:scale-95">
+              Verificar
+            </button>
+          </div>
+
+          <!-- Extra Quick Actions -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="btn-open-camera" class="px-4 py-3.5 rounded-xl bg-brand-blue hover:bg-brand-cardHover border border-brand-accent/40 text-brand-accent font-bold text-xs uppercase flex items-center gap-2 transition-all">
+              <span class="material-symbols-outlined text-lg">photo_camera</span>
+              <span class="hidden sm:inline">Cámara Web</span>
+            </button>
+            <button id="btn-emergency-gate" class="px-4 py-3.5 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-500/50 text-red-300 font-bold text-xs uppercase flex items-center gap-2 transition-all" title="Apertura forzada de pluma ante contingencia">
+              <span class="material-symbols-outlined text-lg text-red-400">warning</span>
+              <span>Apertura Emergencia</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Testing Simulation Buttons (For fast demo of the 4 test cases) -->
+        <div class="pt-2 border-t border-brand-border/60 flex flex-wrap items-center gap-2 text-xs">
+          <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider mr-1">Pruebas Rápidas:</span>
+          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 font-medium" data-code="HLX-RES|usr_001|com_001|DEMO_AL_CORRIENTE">
+            🟩 Residente Al Corriente
+          </button>
+          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-300 font-medium" data-code="HLX-RES|usr_002|com_001|DEMO_MOROSO">
+            🟥 Residente Moroso (Suspendido)
+          </button>
+          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/60 border border-blue-500/30 text-blue-300 font-medium" data-code="HLX-VISIT-INV-WQGX1M">
+            🟦 Visita Programada Activa
+          </button>
+          <button class="quick-test-btn px-2.5 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 text-amber-300 font-medium" data-code="HLX-VISIT-EXPIRADO">
+            🟧 Visita Expirada
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Camera Scanner Viewport (Hidden by default) -->
+      <div id="camera-scanner-modal" class="hidden bg-brand-card rounded-2xl p-4 border-2 border-brand-accent/50 shadow-2xl relative">
+        <div class="flex items-center justify-between pb-3 border-b border-brand-border mb-3">
+          <div class="flex items-center gap-2 text-brand-accent font-bold text-sm">
+            <span class="material-symbols-outlined">videocam</span>
+            <span>Escáner de Cámara en Vivo</span>
+          </div>
+          <button id="btn-close-camera" class="p-1 rounded bg-brand-dark text-slate-400 hover:text-white">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="relative w-full max-w-md mx-auto aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-brand-border">
+          <video id="camera-video" playsinline class="w-full h-full object-cover"></video>
+          <div class="scan-reticle-line"></div>
+          <div class="absolute inset-8 border-2 border-dashed border-brand-accent/60 rounded-xl pointer-events-none"></div>
+        </div>
+        <p class="text-[11px] text-center text-slate-400 mt-2">Alinea el código QR del celular dentro del recuadro.</p>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- VERIFICATION DISPLAY CARD (TRAFFIC LIGHT FEEDBACK)                   -->
+      <!-- =================================================================== -->
+      <div id="verification-card" class="bg-brand-card rounded-2xl border-2 border-brand-border shadow-2xl overflow-hidden transition-all duration-300">
+        
+        <!-- INITIAL EMPTY STATE -->
+        <div id="card-state-idle" class="p-12 text-center space-y-4">
+          <div class="w-24 h-24 mx-auto rounded-3xl bg-brand-dark border-2 border-dashed border-brand-border flex items-center justify-center text-slate-500 shadow-inner">
+            <span class="material-symbols-outlined text-5xl">qr_code_scanner</span>
+          </div>
+          <div class="max-w-md mx-auto space-y-1">
+            <h3 class="text-xl font-bold text-white">Caseta a la Espera de Código QR</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Escanea la credencial digital del residente o el pase de visita mediante el lector óptico USB o ingresa el folio manual arriba.
+            </p>
+          </div>
+          <div class="flex items-center justify-center gap-4 text-[11px] text-slate-500 font-mono">
+            <span>[Fila de Entrada: Libre]</span>
+            <span>•</span>
+            <span>[Pluma: Cerrada]</span>
+          </div>
+        </div>
+
+        <!-- ACTIVE VERIFICATION RESULT (Populated dynamically) -->
+        <div id="card-state-result" class="hidden">
+          
+          <!-- Large Top Banner (Traffic Light) -->
+          <div id="result-banner" class="p-4 sm:p-5 flex items-center justify-between gap-4 bg-emerald-600 text-white transition-colors duration-300">
+            <div class="flex items-center gap-3">
+              <div id="result-icon-container" class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-black">
+                <span id="result-icon" class="material-symbols-outlined text-3xl">check_circle</span>
+              </div>
+              <div>
+                <span id="result-headline" class="text-xs uppercase font-extrabold tracking-widest block text-white/90">Estatus de Acceso</span>
+                <h2 id="result-status-text" class="text-2xl sm:text-3xl font-black tracking-tight leading-none uppercase">ACCESO CONCEDIDO</h2>
+              </div>
+            </div>
+            
+            <div class="text-right">
+              <span id="result-type-badge" class="px-3 py-1 rounded-full text-xs font-extrabold uppercase bg-black/30 backdrop-blur-md">
+                RESIDENTE
+              </span>
+            </div>
+          </div>
+
+          <!-- Body details -->
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              
+              <!-- Left: Avatar / Photo + License Plate -->
+              <div class="md:col-span-4 flex flex-col items-center text-center p-4 rounded-xl bg-brand-dark border border-brand-border space-y-3">
+                <div class="relative">
+                  <img id="result-avatar" src="avatars/male-1.png" alt="Sujeto" class="w-28 h-28 rounded-2xl object-cover border-2 border-brand-border bg-brand-blue shadow-lg">
+                  <span id="result-role-chip" class="absolute -bottom-2 -right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-brand-accent text-brand-navy shadow">
+                    RESIDENTE
+                  </span>
+                </div>
+
+                <div class="w-full space-y-1">
+                  <div class="text-[10px] uppercase font-bold text-slate-400">Placas Registradas</div>
+                  <div id="result-plate" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 font-mono text-base font-bold text-amber-300 tracking-wider">
+                    WSR-4421
+                  </div>
+                </div>
+
+                <div id="result-contact-box" class="w-full text-left text-xs text-slate-400 pt-2 border-t border-brand-border/60">
+                  <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-slate-400">call</span>
+                    <span id="result-phone">+52 993 123 4567</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Identity Details & Reason -->
+              <div class="md:col-span-8 space-y-4">
+                
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Nombre del Conductor / Pasajero</span>
+                  <h3 id="result-name" class="text-2xl font-black text-white leading-tight">Ing. Carlos Mendoza R.</h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-3 rounded-xl bg-brand-dark border border-brand-border">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Lote / Residencia</span>
+                    <span id="result-unit" class="text-base font-bold text-white">Casa 42-B</span>
+                    <span id="result-zone" class="text-xs text-slate-400 block">Privada Los Robles</span>
+                  </div>
+                  <div class="p-3 rounded-xl bg-brand-dark border border-brand-border">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Modalidad de Ingreso</span>
+                    <span id="result-entry-type" class="text-base font-bold text-brand-accent">VEHICULAR</span>
+                    <span id="result-validity" class="text-xs text-slate-400 block">Vigencia: Activa</span>
+                  </div>
+                </div>
+
+                <!-- Reason / Suspension Box -->
+                <div id="result-reason-card" class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 space-y-1">
+                  <div class="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+                    <span class="material-symbols-outlined text-base">info</span>
+                    <span>Dictamen Oficial de Caseta</span>
+                  </div>
+                  <p id="result-reason-text" class="text-xs leading-relaxed font-medium">
+                    Residente Al Corriente. Licencia y membresía al día. Acceso concedido sin restricciones.
+                  </p>
+                  <!-- Debt details if suspended -->
+                  <div id="result-debt-details" class="hidden pt-2 border-t border-red-500/30 text-red-200 text-xs font-mono font-bold flex items-center justify-between">
+                    <span>Adeudo pendiente: <span id="result-debt-amount">$3,700 MXN</span></span>
+                    <span>Cuotas morosas: <span id="result-debt-count">2</span></span>
+                  </div>
+                </div>
+
+                <!-- Host information (only for visitor passes) -->
+                <div id="result-host-card" class="hidden p-3 rounded-xl bg-blue-950/30 border border-blue-500/30 text-blue-200 text-xs space-y-1">
+                  <div class="text-[10px] uppercase font-bold text-blue-300">Residente Anfitrión Autorizante</div>
+                  <div class="font-bold text-white text-sm" id="result-host-name">Ing. Carlos Mendoza</div>
+                  <div class="text-slate-300" id="result-host-unit">Casa 42-B (Privada Los Robles)</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ACTION BUTTONS: TACTILE HIGH CONTRAST -->
+            <div class="pt-4 border-t border-brand-border flex flex-wrap items-center justify-between gap-3">
+              <button id="btn-reset-view" class="px-5 py-3.5 rounded-xl bg-brand-dark hover:bg-slate-800 border border-brand-border text-slate-300 text-xs font-bold uppercase transition-all">
+                Siguiente / Limpiar
+              </button>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <button id="btn-reject-access" class="px-5 py-3.5 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-500/60 text-red-300 hover:text-white text-xs font-bold uppercase shadow flex items-center gap-2 transition-all">
+                  <span class="material-symbols-outlined text-base">block</span>
+                  <span>Rechazar Cruce</span>
+                </button>
+
+                <button id="btn-record-exit" class="px-5 py-3.5 rounded-xl bg-blue-950/60 hover:bg-blue-900 border border-blue-500/60 text-blue-300 hover:text-white text-xs font-bold uppercase shadow flex items-center gap-2 transition-all">
+                  <span class="material-symbols-outlined text-base">output</span>
+                  <span>Registrar Salida</span>
+                </button>
+
+                <button id="btn-grant-access" class="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition-all transform active:scale-95">
+                  <span class="material-symbols-outlined text-lg">check_circle</span>
+                  <span>Abrir Pluma / Confirmar Entrada</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: VISITAS DEL DÍA                                                -->
+    <!-- ===================================================================== -->
+    <div id="view-visits" class="tab-view hidden space-y-4">
+      <div class="bg-brand-card rounded-2xl p-5 border border-brand-border shadow-lg space-y-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white">Visitas Programadas para Hoy</h3>
+            <p class="text-xs text-slate-400">Consulta los pases generados por los residentes para acceso express.</p>
+          </div>
+
+          <div class="relative w-full sm:w-72">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <input 
+              id="search-visits-input" 
+              type="text" 
+              placeholder="Buscar por visitante, placa o lote..."
+              class="w-full pl-9 pr-3 py-2 rounded-xl bg-brand-dark border border-brand-border text-xs text-white placeholder:text-slate-500 outline-none focus:border-brand-accent"
+            >
+          </div>
+        </div>
+
+        <!-- Visits Table -->
+        <div class="overflow-x-auto rounded-xl border border-brand-border">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-brand-navy border-b border-brand-border text-[11px] font-bold uppercase text-slate-400">
+              <tr>
+                <th class="p-3">Visitante</th>
+                <th class="p-3">Placas</th>
+                <th class="p-3">Residente Anfitrión</th>
+                <th class="p-3">Unidad / Destino</th>
+                <th class="p-3">Vigencia</th>
+                <th class="p-3">Estatus</th>
+                <th class="p-3 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="visits-table-body" class="divide-y divide-brand-border/60 bg-brand-dark/50">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: REGISTRO DE PAQUETERÍA Y PROVEEDORES EXPRÉS                    -->
+    <!-- ===================================================================== -->
+    <div id="view-delivery" class="tab-view hidden space-y-4">
+      <div class="bg-brand-card rounded-2xl p-6 border border-brand-border shadow-lg max-w-2xl mx-auto space-y-5">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-brand-accent">local_shipping</span>
+            <span>Registro Rápido de Paquetería y Delivery</span>
+          </h3>
+          <p class="text-xs text-slate-400">Ingreso exprés de mensajería, comida y proveedores de servicio a domicilio.</p>
+        </div>
+
+        <form id="form-delivery" class="space-y-4">
+          <!-- One-click company badges -->
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-300 mb-2">1. Seleccionar Empresa / Proveedor</label>
+            <div class="flex flex-wrap gap-2" id="company-preset-container">
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Amazon</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Mercado Libre</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Uber Eats</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Didi Food</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Rappi</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">DHL Express</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">FedEx</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">CFE / Técnico</button>
+              <button type="button" class="preset-company-btn px-3 py-1.5 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-xs font-bold text-white">Otro</button>
+            </div>
+            <input type="hidden" id="delivery-company" value="Amazon">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Nombre Repartidor (Opcional)</label>
+              <input id="delivery-visitor-name" type="text" placeholder="Ej. Juan Pérez" class="w-full px-3 py-2.5 rounded-xl bg-brand-dark border border-brand-border text-xs text-white outline-none focus:border-brand-accent">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Placas Vehículo / Moto <span class="text-brand-accent">*</span></label>
+              <input id="delivery-plate" type="text" required placeholder="Ej. WSR-8820 o MOTO-99" class="w-full px-3 py-2.5 rounded-xl bg-brand-dark border border-brand-border font-mono text-xs text-amber-300 outline-none focus:border-brand-accent uppercase">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Lote / Casa Destino <span class="text-brand-accent">*</span></label>
+              <input id="delivery-unit" type="text" required placeholder="Ej. Casa 42-B o Lote 18" class="w-full px-3 py-2.5 rounded-xl bg-brand-dark border border-brand-border text-xs text-white outline-none focus:border-brand-accent">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Observaciones</label>
+              <input id="delivery-notes" type="text" placeholder="Ej. Entrega paquete caja sellada" class="w-full px-3 py-2.5 rounded-xl bg-brand-dark border border-brand-border text-xs text-white outline-none focus:border-brand-accent">
+            </div>
+          </div>
+
+          <div class="pt-3 flex justify-end">
+            <button type="submit" class="px-6 py-3.5 rounded-xl bg-brand-accent hover:bg-lime-400 text-brand-navy font-black text-xs uppercase shadow-lg flex items-center gap-2 transition-transform active:scale-95">
+              <span class="material-symbols-outlined text-lg">door_front</span>
+              <span>Autorizar Ingreso y Abrir Pluma</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: BITÁCORA FORENSE EN VIVO                                       -->
+    <!-- ===================================================================== -->
+    <div id="view-logs" class="tab-view hidden space-y-4">
+      <div class="bg-brand-card rounded-2xl p-5 border border-brand-border shadow-lg space-y-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-white">Bitácora Forense de Cruces en Vivo</h3>
+            <p class="text-xs text-slate-400">Historial inmutable de aperturas de caseta, accesos denegados y eventos.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btn-refresh-logs" class="p-2 rounded-lg bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-slate-400 hover:text-white" title="Actualizar Bitácora">
+              <span class="material-symbols-outlined text-lg">refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-brand-border">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-brand-navy border-b border-brand-border text-[11px] font-bold uppercase text-slate-400">
+              <tr>
+                <th class="p-3">Hora / Fecha</th>
+                <th class="p-3">Tipo</th>
+                <th class="p-3">Nombre / Sujeto</th>
+                <th class="p-3">Lote / Destino</th>
+                <th class="p-3">Placas</th>
+                <th class="p-3">Movimiento</th>
+                <th class="p-3">Resultado</th>
+                <th class="p-3">Motivo / Dictamen</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body" class="divide-y divide-brand-border/60 bg-brand-dark/50">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL: LOGIN DE GUARDIA DE CASETA (OVERLAY SI NO HAY SESIÓN)            -->
+  <!-- ======================================================================= -->
+  <div id="modal-guard-login" class="fixed inset-0 z-50 bg-[#001c38]/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-brand-card rounded-3xl max-w-md w-full p-6 sm:p-8 border border-brand-border shadow-2xl space-y-5 text-center">
+      
+      <div class="w-16 h-16 rounded-2xl bg-brand-blue border border-brand-accent/40 flex items-center justify-center text-brand-accent mx-auto shadow-md">
+        <span class="material-symbols-outlined text-3xl">shield_person</span>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-black text-white font-['Montserrat']">Autenticación de Caseta</h2>
+        <p class="text-xs text-slate-400 mt-1">Inicia sesión con credenciales de Oficial de Seguridad o Administrador.</p>
+      </div>
+
+      <form id="guard-login-form" class="space-y-3.5 text-left">
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-slate-300 mb-1">Correo del Oficial</label>
+          <input id="login-email" type="email" required value="guardia@heylex.mx" class="w-full px-3.5 py-2.5 rounded-xl bg-brand-dark border border-brand-border text-xs text-white outline-none focus:border-brand-accent">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-slate-300 mb-1">Contraseña</label>
+          <input id="login-password" type="password" required value="guardia123" class="w-full px-3.5 py-2.5 rounded-xl bg-brand-dark border border-brand-border text-xs text-white outline-none focus:border-brand-accent">
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-brand-accent hover:bg-lime-400 text-brand-navy font-black text-xs uppercase shadow-lg transition-transform active:scale-95">
+          Ingresar al Módulo de Caseta
+        </button>
+      </form>
+
+      <div class="pt-3 border-t border-brand-border/60 text-[11px] text-slate-400">
+        ¿Eres Administrador o Residente? 
+        <a href="index.html" class="text-brand-accent font-bold hover:underline">Volver a Inicio</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="ui-dialogs.js"></script>
+  <script src="api.js"></script>
+  <script src="caseta.js"></script>
+</body>
+</html>

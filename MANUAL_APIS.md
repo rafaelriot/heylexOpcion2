@@ -716,3 +716,118 @@ Para tótems de entrada con cámaras o lectores láser de códigos QR:
    - Si `licenseStatus == "SUSPENDIDO"`:
      - La pantalla del tótem muestra: *"Acceso suspendido: Por favor comuníquese a la administración"*.
      - La barrera permanece cerrada.
+
+---
+
+## 7. Módulo de Caseta y Guardias de Seguridad (Endpoints Operativos)
+
+### 7.1 Verificar Pase o Credencial QR en Caseta
+- **Ruta:** `POST /backend/api.php?action=verify_pass`
+- **Permisos:** Guardia (`id_ro = 3`) o Administrador (`id_ro = 4`).
+- **Body JSON:**
+```json
+{
+  "qrPayload": "HLX-RES|1|2|1731038400|SEC_892F",
+  "id_se": 2
+}
+```
+- **Respuesta (Acceso Permitido):**
+```json
+{
+  "ok": true,
+  "type": "RESIDENTE",
+  "permitted": true,
+  "residentId": 1,
+  "name": "Ing. Carlos Mendoza R.",
+  "unit": "Casa 42-B",
+  "zone": "Privada Los Robles",
+  "reason": "Residente Al Corriente. Acceso Autorizado.",
+  "debtAmount": 0,
+  "overdueCount": 0
+}
+```
+- **Respuesta (Acceso Denegado por Morosidad):**
+```json
+{
+  "ok": true,
+  "type": "RESIDENTE",
+  "permitted": false,
+  "residentId": 2,
+  "name": "Lic. Ana Sofía Garza",
+  "unit": "Casa 18-A",
+  "zone": "Privada Los Robles",
+  "reason": "Acceso Suspendido: Cuenta con 2 cuota(s) vencida(s) [$3,700 MXN].",
+  "debtAmount": 3700.00,
+  "overdueCount": 2
+}
+```
+
+### 7.2 Asentar Evento de Cruce en Bitácora Forense
+- **Ruta:** `POST /backend/api.php?action=record_access`
+- **Permisos:** Guardia o Administrador.
+- **Body JSON:**
+```json
+{
+  "type": "RESIDENTE",
+  "result": "PERMITTED",
+  "direction": "entrada",
+  "residentId": 1,
+  "visitId": 0,
+  "reason": "Acceso verificado en caseta"
+}
+```
+- **Respuesta:**
+```json
+{
+  "ok": true,
+  "message": "Cruce registrado exitosamente en bitácora.",
+  "data": {
+    "ok": true,
+    "accessId": 56,
+    "type": "residente",
+    "result": "permitido",
+    "movement": "entrada",
+    "timestamp": "2026-11-07 22:30:15"
+  }
+}
+```
+
+### 7.3 Registro Rápido de Paquetería y Delivery Exprés
+- **Ruta:** `POST /backend/api.php?action=register_delivery`
+- **Permisos:** Guardia o Administrador.
+- **Body JSON:**
+```json
+{
+  "company": "Amazon",
+  "visitorName": "Juan Pérez",
+  "vehiclePlate": "WSR-8820",
+  "unit": "Casa 42-B",
+  "notes": "Entrega de paquete sellado"
+}
+```
+
+### 7.4 Búsqueda de Visitas Programadas del Día
+- **Ruta:** `GET /backend/api.php?action=guard_visits&id_se=2&search=carlos`
+- **Permisos:** Guardia o Administrador.
+- **Respuesta:**
+```json
+{
+  "ok": true,
+  "visits": [
+    {
+      "id_vp": 12,
+      "nombre_vp": "Lic. Fernando Tapia",
+      "placas_vp": "WSA-7781",
+      "tipocruce_vp": "vehicular",
+      "estatus_vp": "activa",
+      "motivo_vp": "Reunión de trabajo",
+      "fechainicio_vp": "2026-11-07 10:00:00",
+      "fechafin_vp": "2026-11-07 18:00:00",
+      "residente_nombre": "Carlos Mendoza",
+      "residente_unidad": "Casa 42-B",
+      "residente_privada": "Privada Los Robles"
+    }
+  ]
+}
+```
+

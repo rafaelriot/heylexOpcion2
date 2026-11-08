@@ -17,6 +17,7 @@ const HeylexAPI = (function () {
   const STORAGE_KEY_ENROLLMENT_CODES = 'heylex_enrollment_codes_db';
   const STORAGE_KEY_CUOTAS = 'heylex_cuotas_db';
   const STORAGE_KEY_PAGOS = 'heylex_pagos_db';
+  const STORAGE_KEY_ACCESS_LOGS = 'heylex_access_logs_db';
 
   // Seed default cuotas (Finanzas Condominales)
   const SEED_CUOTAS = [
@@ -205,6 +206,37 @@ const HeylexAPI = (function () {
       localStorage.setItem(STORAGE_KEY_PAGOS, JSON.stringify(pagos));
     } catch (e) {
       console.error('Error saving pagos to localStorage', e);
+    }
+  }
+
+  const SEED_ACCESS_LOGS = [
+    { id: 55, type: 'usuario', name: 'Santos Jim Gon', unit: 'Casa 42-B', vehiclePlate: 'WSR-4421', direction: 'entrada', result: 'permitido', reason: 'Usuario activo', timestamp: '2026-10-31 15:42:10', guardId: 721 },
+    { id: 54, type: 'visita', name: 'Lic. Roberto Garza', unit: 'Lote 18-A', vehiclePlate: 'VHK-9920', direction: 'entrada', result: 'permitido', reason: 'QR activo', timestamp: '2026-10-31 15:20:00', guardId: 721 },
+    { id: 53, type: 'visita', name: 'Repartidor DHL Express', unit: 'Casa 10', vehiclePlate: 'TB-1102', direction: 'entrada', result: 'denegado', reason: 'QR expirado', timestamp: '2026-10-31 14:55:18', guardId: 721 },
+    { id: 52, type: 'usuario', name: 'Dra. Patricia Silva', unit: 'Casa 42-B', vehiclePlate: 'WSR-4421', direction: 'salida', result: 'permitido', reason: 'Usuario activo', timestamp: '2026-10-31 14:10:05', guardId: 721 },
+    { id: 51, type: 'visita', name: 'Ing. Fernando Tapia', unit: 'Casa 05', vehiclePlate: 'WSA-7781', direction: 'entrada', result: 'permitido', reason: 'QR activo', timestamp: '2026-10-31 13:30:45', guardId: 721 },
+    { id: 50, type: 'visita', name: 'Servicio Técnico Telmex', unit: 'Casa 14-C', vehiclePlate: 'WSR-9011', direction: 'salida', result: 'permitido', reason: 'Salida de visita', timestamp: '2026-10-31 12:45:00', guardId: 721 },
+    { id: 49, type: 'usuario', name: 'Lic. Gerardo Núñez', unit: 'Lote 03', vehiclePlate: 'WSP-2234', direction: 'entrada', result: 'denegado', reason: 'Licencia inactiva', timestamp: '2026-10-31 11:15:22', guardId: 721 }
+  ];
+
+  function getStoredAccessLogs() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_ACCESS_LOGS);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY_ACCESS_LOGS, JSON.stringify(SEED_ACCESS_LOGS));
+        return SEED_ACCESS_LOGS;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return SEED_ACCESS_LOGS;
+    }
+  }
+
+  function saveStoredAccessLogs(logs) {
+    try {
+      localStorage.setItem(STORAGE_KEY_ACCESS_LOGS, JSON.stringify(logs));
+    } catch (e) {
+      console.error('Error saving access logs to localStorage', e);
     }
   }
 
@@ -551,6 +583,22 @@ const HeylexAPI = (function () {
       debtAmount: 0.00,
       lastPaymentDate: '2026-10-02',
       suspensionReason: null
+    },
+    // 9. Oficial de Guardia de Seguridad (Caseta de Control de Acceso)
+    {
+      id: 'usr_guard_01',
+      email: 'guardia@heylex.mx',
+      password: 'guardia123',
+      name: 'Oficial Roberto Gómez',
+      gender: 'M',
+      avatarVariant: 1,
+      phone: '+52 993 555 0101',
+      role: 'GUARDIA',
+      avatar: MALE_AVATARS[0],
+      communityId: 'com_001',
+      zone: 'Caseta Principal',
+      unit: 'Acceso Vehicular A',
+      licenseStatus: 'ACTIVE'
     }
   ];
 
@@ -1623,6 +1671,327 @@ const HeylexAPI = (function () {
         clabe: '012 790 00123456789 4',
         whatsapp: '529933784115'
       };
+    },
+
+    /* =========================================================================
+     * MÓDULO OPERATIVO DE CASETA DE VIGILANCIA & CONTROL DE ACCESO
+     * ======================================================================= */
+
+    // 25. Verificación de Pase / QR en Caseta
+    async verifyPass(qrPayload, communityId = 'com_001') {
+      const payload = String(qrPayload || '').trim();
+      const id_se = (communityId === 'com_001' || communityId === 2) ? 2 : 1;
+
+      try {
+        const resp = await apiFetch('backend/api.php?action=verify_pass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qrPayload: payload, id_se })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.ok) return data;
+        }
+      } catch (err) {
+        console.warn('verifyPass backend API fallback a demo local:', err);
+      }
+
+      // --- Fallback Local Mock ---
+      await delay(200);
+
+      // A) QR de Residente (HLX-RES|id|...)
+      if (payload.startsWith('HLX-RES|') || payload.startsWith('HLX-RES-')) {
+        const parts = payload.split('|');
+        const residentId = parts[1] || '';
+        const residents = getStoredResidents();
+        const resident = residents.find(r => r.id === residentId || r.id === 'usr_001') || residents[2];
+        const cuotas = getStoredCuotas();
+        const overdue = cuotas.filter(c => c.residentId === resident.id && c.status === 'vencida');
+        const overdueCount = overdue.length;
+        const debtAmount = overdue.reduce((sum, c) => sum + (c.amount || 0), 0);
+        const isSuspended = resident.licenseStatus === 'SUSPENDED' || overdueCount > 0;
+
+        if (isSuspended) {
+          return {
+            ok: true,
+            type: 'RESIDENTE',
+            permitted: false,
+            residentId: resident.id,
+            name: resident.name,
+            unit: resident.unit,
+            zone: resident.zone,
+            phone: resident.phone,
+            photo: resident.avatar,
+            reason: overdueCount > 0
+              ? `Acceso Suspendido: Cuenta con ${overdueCount} cuota(s) vencida(s) [$${debtAmount.toLocaleString()} MXN].`
+              : (resident.suspensionReason || 'Acceso Suspendido por Administración.'),
+            debtAmount,
+            overdueCount
+          };
+        }
+
+        return {
+          ok: true,
+          type: 'RESIDENTE',
+          permitted: true,
+          residentId: resident.id,
+          name: resident.name,
+          unit: resident.unit,
+          zone: resident.zone,
+          phone: resident.phone,
+          photo: resident.avatar,
+          reason: 'Residente Al Corriente. Acceso Autorizado.',
+          debtAmount: 0,
+          overdueCount: 0
+        };
+      }
+
+      // B) Pase de Visitante (HLX-VISIT-... o token)
+      const invites = getStoredInvites();
+      const cleanToken = payload.replace('HLX-VISIT-', '').trim();
+      const visit = invites.find(inv => 
+        inv.qrCode === payload || 
+        inv.id === cleanToken || 
+        inv.qrCode === cleanToken ||
+        payload.includes(String(inv.id))
+      );
+
+      if (visit) {
+        // Verificar anfitrión
+        const residents = getStoredResidents();
+        const host = residents.find(r => r.name === visit.hostResidentName || r.unit === visit.hostUnit) || residents[2];
+        const isHostSuspended = host && host.licenseStatus === 'SUSPENDED';
+
+        if (isHostSuspended) {
+          return {
+            ok: true,
+            type: 'VISITANTE',
+            permitted: false,
+            visitorName: visit.visitorName,
+            vehiclePlate: visit.vehiclePlate || 'N/A',
+            hostName: visit.hostResidentName || host.name,
+            hostUnit: visit.hostUnit || host.unit,
+            reason: `Acceso Denegado: El residente anfitrión (${host.name}, ${host.unit}) se encuentra en suspensión de derechos.`
+          };
+        }
+
+        const now = new Date();
+        const validTo = visit.validUntil ? new Date(visit.validUntil) : null;
+        if (validTo && now > validTo) {
+          return {
+            ok: true,
+            type: 'VISITANTE',
+            permitted: false,
+            visitorName: visit.visitorName,
+            vehiclePlate: visit.vehiclePlate || 'N/A',
+            hostName: visit.hostResidentName,
+            hostUnit: visit.hostUnit,
+            reason: `Pase Expirado: Venció el ${validTo.toLocaleDateString()} ${validTo.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
+          };
+        }
+
+        if (visit.status === 'USED' || visit.status === 'usada') {
+          return {
+            ok: true,
+            type: 'VISITANTE',
+            permitted: false,
+            visitorName: visit.visitorName,
+            vehiclePlate: visit.vehiclePlate || 'N/A',
+            hostName: visit.hostResidentName,
+            hostUnit: visit.hostUnit,
+            reason: 'Pase de un solo uso ya utilizado con anterioridad.'
+          };
+        }
+
+        return {
+          ok: true,
+          type: 'VISITANTE',
+          permitted: true,
+          visitId: visit.id,
+          visitorName: visit.visitorName,
+          vehiclePlate: visit.vehiclePlate || 'N/A',
+          entryType: visit.entryType || 'VEHICULAR',
+          hostName: visit.hostResidentName || 'Ing. Carlos Mendoza',
+          hostUnit: visit.hostUnit || 'Casa 42-B',
+          hostZone: visit.hostZone || 'Privada Los Robles',
+          validTo: visit.validUntil,
+          notes: visit.reason || 'Visita autorizada',
+          reason: 'Pase de Visitante Válido. Acceso Autorizado.'
+        };
+      }
+
+      // C) Simulación heurística si se escanea un código de prueba
+      if (payload.toUpperCase().includes('MOROSO') || payload.toUpperCase().includes('DEUDA')) {
+        return {
+          ok: true,
+          type: 'RESIDENTE',
+          permitted: false,
+          name: 'Lic. Ana Sofía Garza',
+          unit: 'Casa 18-A',
+          zone: 'Privada Los Robles',
+          phone: '+52 993 987 6543',
+          reason: 'Acceso Suspendido: Cuenta con 2 cuotas vencidas [$3,700 MXN].',
+          debtAmount: 3700,
+          overdueCount: 2
+        };
+      }
+
+      if (payload.toUpperCase().includes('PASADO') || payload.toUpperCase().includes('EXPIRADO')) {
+        return {
+          ok: true,
+          type: 'VISITANTE',
+          permitted: false,
+          visitorName: 'Repartidor DHL Express',
+          vehiclePlate: 'TB-1102',
+          hostName: 'Sra. Valeria Ortiz Blanco',
+          hostUnit: 'Casa 03-C',
+          reason: 'Pase Expirado: Vigencia concluida hace 2 horas.'
+        };
+      }
+
+      return {
+        ok: true,
+        type: 'DESCONOCIDO',
+        permitted: false,
+        reason: 'Código QR no reconocido o sin registro en esta caseta.',
+        payload
+      };
+    },
+
+    // 26. Registrar Evento de Cruce en Bitácora Forense
+    async recordAccess(data) {
+      const session = getStoredSession();
+      try {
+        const resp = await apiFetch('backend/api.php?action=record_access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (resp.ok) {
+          const res = await resp.json();
+          if (res && res.ok) return res;
+        }
+      } catch (err) {
+        console.warn('recordAccess backend API fallback a demo local:', err);
+      }
+
+      // Mock Local
+      const logs = getStoredAccessLogs();
+      const newLog = {
+        id: Date.now(),
+        type: data.type === 'VISITANTE' ? 'visita' : 'usuario',
+        name: data.name || data.visitorName || 'Usuario',
+        unit: data.unit || data.hostUnit || 'General',
+        vehiclePlate: data.vehiclePlate || 'N/A',
+        direction: (data.direction || 'entrada').toLowerCase(),
+        result: data.result === 'PERMITTED' ? 'permitido' : 'denegado',
+        reason: data.reason || 'Cruce registrado en caseta',
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        guardId: session?.user?.id || 'usr_guard_01'
+      };
+      logs.unshift(newLog);
+      saveStoredAccessLogs(logs);
+
+      // Si fue una visita de uso único y fue permitida, marcarla usada
+      if (data.visitId) {
+        const invites = getStoredInvites();
+        const v = invites.find(i => i.id === data.visitId || i.qrCode === data.visitId);
+        if (v && data.result === 'PERMITTED') {
+          v.status = 'USED';
+          saveStoredInvites(invites);
+        }
+      }
+
+      return {
+        ok: true,
+        accessId: newLog.id,
+        message: 'Cruce registrado en bitácora local.'
+      };
+    },
+
+    // 27. Registrar Paquetería / Proveedor Exprés
+    async registerDelivery(deliveryData) {
+      const session = getStoredSession();
+      try {
+        const resp = await apiFetch('backend/api.php?action=register_delivery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(deliveryData)
+        });
+        if (resp.ok) {
+          const res = await resp.json();
+          if (res && res.ok) return res;
+        }
+      } catch (err) {
+        console.warn('registerDelivery backend API fallback a demo local:', err);
+      }
+
+      // Mock Local
+      const logs = getStoredAccessLogs();
+      const newLog = {
+        id: Date.now(),
+        type: 'visita',
+        name: `${deliveryData.company || 'Paquetería'}: ${deliveryData.visitorName || 'Repartidor'}`,
+        unit: deliveryData.unit || 'Lote Condominal',
+        vehiclePlate: (deliveryData.vehiclePlate || 'N/A').toUpperCase(),
+        direction: 'entrada',
+        result: 'permitido',
+        reason: `Entrega exprés: ${deliveryData.company || 'Servicio'} - ${deliveryData.notes || 'Paquete recibido'}`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        guardId: session?.user?.id || 'usr_guard_01'
+      };
+      logs.unshift(newLog);
+      saveStoredAccessLogs(logs);
+
+      return {
+        ok: true,
+        accessId: newLog.id,
+        message: 'Ingreso de paquetería registrado exitosamente.'
+      };
+    },
+
+    // 28. Consultar Visitas del Día para Búsqueda Rápida en Caseta
+    async getGuardVisits(search = '', communityId = 'com_001') {
+      const id_se = (communityId === 'com_001' || communityId === 2) ? 2 : 1;
+      try {
+        const resp = await apiFetch(`backend/api.php?action=guard_visits&id_se=${id_se}&search=${encodeURIComponent(search)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.ok && Array.isArray(data.visits)) {
+            return data.visits;
+          }
+        }
+      } catch (err) {
+        console.warn('getGuardVisits backend API fallback a demo local:', err);
+      }
+
+      // Mock Local
+      const invites = getStoredInvites();
+      let visits = invites.map((inv, idx) => ({
+        id_vp: inv.id || idx + 1,
+        nombre_vp: inv.visitorName,
+        placas_vp: inv.vehiclePlate || 'N/A',
+        tipocruce_vp: inv.entryType || 'vehicular',
+        estatus_vp: (inv.status || 'activa').toLowerCase(),
+        motivo_vp: inv.reason || 'Visita autorizada',
+        fechainicio_vp: inv.validFrom,
+        fechafin_vp: inv.validUntil,
+        residente_nombre: inv.hostResidentName || 'Ing. Carlos Mendoza',
+        residente_unidad: inv.hostUnit || 'Casa 42-B',
+        residente_privada: inv.hostZone || 'Privada Los Robles'
+      }));
+
+      if (search && search.trim()) {
+        const q = search.toLowerCase().trim();
+        visits = visits.filter(v => 
+          (v.nombre_vp && v.nombre_vp.toLowerCase().includes(q)) ||
+          (v.placas_vp && v.placas_vp.toLowerCase().includes(q)) ||
+          (v.residente_nombre && v.residente_nombre.toLowerCase().includes(q)) ||
+          (v.residente_unidad && v.residente_unidad.toLowerCase().includes(q))
+        );
+      }
+
+      return visits;
     }
   };
 })();

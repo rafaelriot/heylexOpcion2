@@ -1,14 +1,16 @@
 // HEYLEX PWA Service Worker (sw.js)
-const CACHE_NAME = 'heylex-pwa-v5';
+const CACHE_NAME = 'heylex-pwa-v6';
 
 const STATIC_ASSETS = [
   './',
   'index.html',
   'admin.html',
+  'caseta.html',
   'manifest.json',
   'api.js',
   'portal.js',
   'admin.js',
+  'caseta.js',
   'ui-dialogs.js',
   'qrcode.min.js',
   'icons/icon-192.png',
