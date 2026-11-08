@@ -553,6 +553,32 @@ INSERT INTO `usuarios` (
   `nombre_u`, `apaterno_u`, `amaterno_u`, `telefonomovil_u`, `sexo_u`,
   `colonia_u`, `calle_u`, `numero_u`, `numerointerior_u`, `activo_u`, `fecharegistro_u`
 ) VALUES (
+  1652, 4, 1, 'admin@heylex.mx', md5('admin123'), 'HLX-ADM-MORALES-01', 'y',
+  'Lic. Roberto', 'Morales', 'Pérez', '+52 993 311 2233', 'h',
+  'Administración General', 'Oficinas Cumbres', '1', '', 'y', NOW()
+) ON DUPLICATE KEY UPDATE
+  `nombre_u` = 'Lic. Roberto', `apaterno_u` = 'Morales', `amaterno_u` = 'Pérez',
+  `email_u` = 'admin@heylex.mx', `pasword_u` = md5('admin123'),
+  `telefonomovil_u` = '+52 993 311 2233', `sexo_u` = 'h',
+  `id_ro` = 4, `id_eu` = 1, `qractivo_u` = 'y', `activo_u` = 'y';
+INSERT INTO `usuarios` (
+  `id_u`, `id_ro`, `id_eu`, `email_u`, `pasword_u`, `tokenqr_u`, `qractivo_u`,
+  `nombre_u`, `apaterno_u`, `amaterno_u`, `telefonomovil_u`, `sexo_u`,
+  `colonia_u`, `calle_u`, `numero_u`, `numerointerior_u`, `activo_u`, `fecharegistro_u`
+) VALUES (
+  721, 3, 1, 'guardia@heylex.mx', md5('guardia123'), 'HLX-GRD-GOMEZ-01', 'y',
+  'Roberto', 'Gómez', 'Oficial', '+52 993 555 0101', 'h',
+  'Caseta Principal', 'Acceso Vehicular', 'A', '', 'y', NOW()
+) ON DUPLICATE KEY UPDATE
+  `nombre_u` = 'Roberto', `apaterno_u` = 'Gómez', `amaterno_u` = 'Oficial',
+  `email_u` = 'guardia@heylex.mx', `pasword_u` = md5('guardia123'),
+  `telefonomovil_u` = '+52 993 555 0101', `sexo_u` = 'h',
+  `id_ro` = 3, `id_eu` = 1, `qractivo_u` = 'y', `activo_u` = 'y';
+INSERT INTO `usuarios` (
+  `id_u`, `id_ro`, `id_eu`, `email_u`, `pasword_u`, `tokenqr_u`, `qractivo_u`,
+  `nombre_u`, `apaterno_u`, `amaterno_u`, `telefonomovil_u`, `sexo_u`,
+  `colonia_u`, `calle_u`, `numero_u`, `numerointerior_u`, `activo_u`, `fecharegistro_u`
+) VALUES (
   1665, 5, 1, 'residente@heylex.mx', md5('password123'), 'HLX-RES-MENDOZA-42B', 'y',
   'Carlos', 'Mendoza', 'R.', '+52 993 123 4567', 'h',
   'Privada Los Robles', 'Roble Real', '42', 'B', 'y', NOW()
@@ -605,6 +631,8 @@ INSERT INTO `usuarios` (
   `colonia_u` = 'Privada Magnolia', `calle_u` = 'Paseo de las Flores', `numero_u` = '03', `numerointerior_u` = 'C',
   `id_ro` = 5, `id_eu` = 3, `qractivo_u` = 'n', `activo_u` = 'y';
 INSERT IGNORE INTO `serviciosusuarios` (`id_se`, `id_u`) VALUES
+(2, 721),
+(2, 1652),
 (2, 1665),
 (2, 1666),
 (2, 1667),
