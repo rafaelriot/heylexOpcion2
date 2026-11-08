@@ -67,3 +67,4 @@ class GuardController extends BaseController {
         Response::success(['visits' => $visits]);
     }
 }
+

@@ -10,6 +10,7 @@ class GuardModel extends BaseModel {
      * Valida un pase QR en tiempo real para caseta (Residente o Visitante)
      */
     public function verifyPass(string $payload, int $id_se): array {
+        $this->requireConnection();
         $payload = trim($payload);
 
         // 1. Evaluar si es pase de Residente (HLX-RES|...) o token en usuarios
@@ -265,6 +266,7 @@ class GuardModel extends BaseModel {
      * Registra un evento de cruce en apphistorialaccesos
      */
     public function recordAccess(array $data, int $id_se, int $guardId): array {
+        $this->requireConnection();
         $type = ($data['type'] === 'VISITANTE') ? 'visita' : 'residente';
         $result = ($data['result'] === 'PERMITTED') ? 'permitido' : 'denegado';
         $movement = (strtolower($data['direction'] ?? 'entrada') === 'salida') ? 'salida' : 'entrada';
@@ -314,6 +316,7 @@ class GuardModel extends BaseModel {
      * Registro rápido de proveedores, servicios o paquetería (Amazon, Uber, etc.)
      */
     public function registerDelivery(array $data, int $id_se, int $guardId): array {
+        $this->requireConnection();
         $company = trim((string)($data['company'] ?? 'Paquetería'));
         $visitorName = trim((string)($data['visitorName'] ?? $company));
         $plate = strtoupper(trim((string)($data['vehiclePlate'] ?? '')));
@@ -361,6 +364,7 @@ class GuardModel extends BaseModel {
      * Consultar visitas activas y esperadas hoy para el buscador del guardia
      */
     public function getTodayVisits(int $id_se, string $search = ''): array {
+        $this->requireConnection();
         $sql = "
             SELECT 
                 vp.id_vp,
@@ -416,3 +420,4 @@ class GuardModel extends BaseModel {
         }, $rows);
     }
 }
+
