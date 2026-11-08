@@ -1,0 +1,46 @@
+# ==============================================================================
+# HEYLEX SECURITY & HOSTING CONFIGURATION (Apache / Hostinger / LiteSpeed)
+# ==============================================================================
+
+# 1. Desactivar listado público de directorios
+Options -Indexes
+
+# 2. Proteger archivos críticos del servidor (credenciales, SQL, logs, git)
+<FilesMatch "^(env\.local\.php|env\.php|\.env|\.git.*|.*\.sql|.*\.log|.*\.bak|composer\.(json|lock))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Redirección automática a HTTPS seguro
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# 4. Cabeceras de seguridad bancaria / SOC 2
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# 5. Control de Caché para Service Worker y PWA (evita caché obsoleta de sw.js)
+<FilesMatch "(sw\.js|manifest\.json)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </IfModule>
+</FilesMatch>
+
+# 6. Tipos MIME reconocidos para Progressive Web Apps (PWA)
+<IfModule mod_mime.c>
+    AddType application/manifest+json .json .webmanifest
+</IfModule>
